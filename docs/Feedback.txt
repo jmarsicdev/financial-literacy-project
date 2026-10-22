@@ -1,0 +1,10 @@
+Sprint 1:
+Overall, Team 5 has built a strong foundation by establishing API access across all primary data sources (Alpha Vantage, yfinance, and Tavily) and writing initial test scripts to verify raw payloads. The schema mapping in Section 3 and the data wrangling workflow in Section 5 reflect a practical approach to normalizing nested financial data, handling rate limits, and preparing unstructured news for downstream RAG integration.
+
+However, the report remains incomplete prior to final submission: key items in the Data Source Inventory table, missing value percentages, and the Sprint 8 Reflection are currently blank, while Figures 1 and 2 are listed as N/A.
+
+Concrete Next Steps for Sprint 2
+Define the persistent database architecture (such as PostgreSQL/SQLite for price bars alongside ChromaDB/pgvector for text embeddings) to prevent redundant API queries.
+Unify Ingestion Code: Combine individual API test scripts into a single modular package/class structure that outputs normalized records conforming to your schema.
+Setup Persistence Layer: Build out a local database (SQL + Vector Store) so that fetched API payloads don't need to be repeatedly queried.
+Implement Deduplication: Write the normalized URL and (title, date) comparison function to prevent duplicate articles from cluttering the RAG index.
