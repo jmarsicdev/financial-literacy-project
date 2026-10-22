@@ -30,6 +30,9 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-team5}:${POSTGRES_PASSWORD:-local_dev_only}@db:5432/${POSTGRES_DB:-financial_literacy}
       REDIS_URL: redis://redis:6379/0
       CORS_ORIGINS: http://localhost:5173
+      ALPHA_VANTAGE_API_KEY: ${ALPHA_VANTAGE_API_KEY:-}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      ALPHA_VANTAGE_DAILY_LIMIT: ${ALPHA_VANTAGE_DAILY_LIMIT:-25}
     ports: ["8000:8000"]
     depends_on:
       db: {condition: service_healthy}

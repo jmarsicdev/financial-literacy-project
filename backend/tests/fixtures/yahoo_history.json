@@ -1,0 +1,10 @@
+{
+  "symbol": "NVDA",
+  "period": "max",
+  "rows": [
+    {"date": "2026-10-21", "open": 182.1, "high": 185.43, "low": 181.02, "close": 184.9, "adj_close": 184.9, "volume": 151203400.0, "dividends": 0.0, "stock_splits": 0.0},
+    {"date": "2026-10-20", "open": 179.5, "high": 183.0, "low": 178.88, "close": 182.31, "adj_close": 182.31, "volume": 140221900.0, "dividends": 0.0, "stock_splits": 0.0},
+    {"date": "2026-10-17", "open": 176.0, "high": 179.99, "low": 175.15, "close": 179.2, "adj_close": 179.19, "volume": 133885000.0, "dividends": 0.01, "stock_splits": 0.0},
+    {"date": "2026-10-16", "open": null, "high": 178.0, "low": 174.0, "close": 176.5, "adj_close": 176.49, "volume": 120000000.0, "dividends": 0.0, "stock_splits": 0.0}
+  ]
+}

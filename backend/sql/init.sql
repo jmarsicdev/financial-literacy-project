@@ -43,3 +43,17 @@ CREATE TABLE IF NOT EXISTS document_chunks (
   embedding vector(1536), created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(source_url, chunk_index)
 );
+
+-- raw api responses, one row per call incl. failures
+CREATE TABLE IF NOT EXISTS raw_payloads (
+  id BIGSERIAL PRIMARY KEY,
+  provider VARCHAR(40) NOT NULL,
+  endpoint VARCHAR(80) NOT NULL,
+  params JSONB NOT NULL DEFAULT '{}'::jsonb,
+  cache_key TEXT NOT NULL,
+  payload JSONB NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'ok',
+  fetched_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_raw_payloads_lookup ON raw_payloads(provider, cache_key, fetched_at DESC);
+CREATE INDEX IF NOT EXISTS idx_raw_payloads_provider_time ON raw_payloads(provider, fetched_at);
