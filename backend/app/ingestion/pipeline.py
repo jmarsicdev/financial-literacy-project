@@ -1,4 +1,4 @@
-# cache -> alpha vantage (if budget) -> yfinance
+# cache -> alpha vantage (only if a key is set and budget remains) -> yfinance
 from __future__ import annotations
 
 import logging
@@ -98,8 +98,7 @@ class Ingestor:
                 action = "api:alpha_vantage"
                 remaining -= 1
             elif allow_fallback:
-                reason = "alpha_vantage budget exhausted" if has_key else "no alpha_vantage key"
-                action = f"api:yfinance ({reason})"
+                action = "api:yfinance (alpha_vantage budget exhausted)" if has_key else "api:yfinance"
             else:
                 reason = "alpha_vantage budget exhausted" if has_key else "no alpha_vantage key"
                 action = f"skip ({reason}, fallback disabled)"
@@ -129,15 +128,13 @@ class Ingestor:
                 log.warning("%s: alpha_vantage returned %s", symbol, status)
             else:
                 notes.append(f"alpha_vantage budget exhausted ({budget.used}/{budget.limit} in {budget.window_hours}h)")
-        else:
-            notes.append("no ALPHA_VANTAGE_API_KEY")
 
         if not allow_fallback:
-            return IngestResult("prices", symbol, "skipped", message="; ".join(notes))
+            return IngestResult("prices", symbol, "skipped", message="; ".join(notes) or "no ALPHA_VANTAGE_API_KEY")
 
         status, payload = self._call_yf_history(symbol)
         if status == "ok":
-            return self._load_yf_history(payload, symbol, source="api", status="fallback", notes=notes)
+            return self._load_yf_history(payload, symbol, source="api", status="fallback" if notes else "ok", notes=notes)
         notes.append(f"yfinance {status}")
         return IngestResult("prices", symbol, "failed", provider=None, source="api", message="; ".join(notes))
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 import warnings
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any, Literal
 
 from pydantic import ValidationError
@@ -58,11 +59,15 @@ def fetch_history(symbol: str, period: str = "max") -> dict[str, Any]:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")  # pandas deprecation spam from yfinance
         frame = ticker.history(period=period, auto_adjust=False, actions=True)
+    today = datetime.now(timezone.utc).date()
     rows: list[dict[str, Any]] = []
     for index, row in frame.iterrows():
+        day = index.date() if hasattr(index, "date") else datetime.fromisoformat(str(index)[:10]).date()
+        if day >= today:
+            continue  # session still open, bar isn't final
         rows.append(
             {
-                "date": index.date().isoformat() if hasattr(index, "date") else str(index)[:10],
+                "date": day.isoformat(),
                 "open": _num(row.get("Open")),
                 "high": _num(row.get("High")),
                 "low": _num(row.get("Low")),

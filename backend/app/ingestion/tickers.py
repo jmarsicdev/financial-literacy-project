@@ -1,5 +1,3 @@
-# 19 tickers = 19 alpha vantage calls out of 25/day
-
 AI_TECH_STOCKS: list[str] = [
     "NVDA", "AMD", "AVGO", "TSM", "ARM",
     "MSFT", "GOOGL", "AMZN", "META", "AAPL", "ORCL",

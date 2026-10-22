@@ -63,9 +63,9 @@ def test_no_key_uses_yfinance(store, yf_history):
     settings = make_settings(av_key=None)
     ingestor, av, yf, *_ = build(store, settings, yf_hist=Fake(yf_history))
     result = ingestor.ingest_prices("NVDA")
-    assert result.status == "fallback" and result.provider == "yfinance" and result.source == "api"
+    assert result.status == "ok" and result.provider == "yfinance" and result.source == "api"
     assert result.records == 3 and result.rejected == 1
-    assert "no ALPHA_VANTAGE_API_KEY" in result.message
+    assert result.message == ""
     assert len(av.calls) == 0 and len(yf.calls) == 1
     assert ingestor.av_budget().used == 0
 
@@ -163,6 +163,7 @@ def test_plan_prices(store, settings, av_adjusted):
         "api:yfinance (alpha_vantage budget exhausted)",
     ]
     no_key = Ingestor(store, make_settings(av_key=None), fetch_av=Fake({}), fetch_yf_history=Fake({}))
+    assert no_key.plan_prices(["AMD"])[0]["action"] == "api:yfinance"
     assert no_key.plan_prices(["AMD"], allow_fallback=False)[0]["action"].startswith("skip (no alpha_vantage key")
 
 

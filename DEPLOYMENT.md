@@ -27,7 +27,7 @@ Ports are local-development defaults only. Instructor will coordinate k3s ports.
 | `DATABASE_URL` | Backend PostgreSQL connection string |
 | `REDIS_URL` | Backend Redis connection string |
 | `CORS_ORIGINS` | Allowed browser origins |
-| `ALPHA_VANTAGE_API_KEY` | Market-data ingestion (price bars); optional, yfinance is used without it |
+| `ALPHA_VANTAGE_API_KEY` | Optional second market-data source; prices come from yfinance when unset |
 | `ALPHA_VANTAGE_DAILY_LIMIT` | Calls allowed per rolling 24h window (default 25, the free tier) |
 | `TAVILY_API_KEY` | News/search ingestion |
 | `OPENAI_API_KEY` | Optional embedding provider |
@@ -49,4 +49,4 @@ Use local `.env` or deployment secret management for actual values. Commit `.env
 **Reserved for instructor completion.** Instructor will configure k3s services, ports, secrets, ingress, and persistent volume claims after synchronizing service ports. Do not assume local ports are production ports.
 
 ## 7. Known issues and next steps
-Alpha Vantage/yfinance/Tavily ingestion is wired in with a persistent raw-payload cache and a daily budget guard. Redis health and demo caching are available, but provider response caching in Redis is future work (PostgreSQL `raw_payloads` currently fills that role). pgvector is enabled and `document_chunks` is prepared, but embeddings and similarity search are not implemented. Sprint 3 should add event/price joins, daily returns, rolling volatility, fuzzy deduplication and retry/backoff on transport errors. Before deployment, keep database/cache ports private and use managed secrets.
+yfinance and Tavily ingestion is wired in with a persistent raw-payload cache; Alpha Vantage is supported behind a daily budget guard but unused because the free tier gates the adjusted-price endpoint. Redis health and demo caching are available, but provider response caching in Redis is future work (PostgreSQL `raw_payloads` currently fills that role). pgvector is enabled and `document_chunks` is prepared, but embeddings and similarity search are not implemented. Sprint 3 should add event/price joins, daily returns, rolling volatility, fuzzy deduplication and retry/backoff on transport errors. Before deployment, keep database/cache ports private and use managed secrets.

@@ -53,22 +53,20 @@ PostgreSQL persists in the `postgres_data` Docker volume. Redis is a cache and p
 api -> raw_payloads -> normalize -> price_bars / ticker_metadata / search_results
 ```
 
-- Price bars: Alpha Vantage (full history, one call per ticker), yfinance fallback. 25 calls/day counted in a rolling 24h window, every attempt counts including rate-limit and premium notices.
-- Ticker metadata: yfinance, free.
+- Price bars: yfinance (full history, split/dividend adjusted close, today's unfinished session is skipped). Alpha Vantage is optional: set a key and it's tried first with a 25 calls/day guard, but the free tier can't reach the adjusted endpoint so we don't use it.
+- Ticker metadata: yfinance.
 - News / search: Tavily. Dedup on normalized URL then title+date, in `dedup.py`.
 
-Keys go in `.env`: `ALPHA_VANTAGE_API_KEY`, `TAVILY_API_KEY`.
+Keys go in `.env`: `TAVILY_API_KEY` (and `ALPHA_VANTAGE_API_KEY` if you want it).
 
 ```bash
-docker compose exec backend python -m app.ingestion budget                 # calls used / remaining
-docker compose exec backend python -m app.ingestion seed-prices --dry-run  # plan only
 docker compose exec backend python -m app.ingestion seed-prices            # default list in tickers.py, or --tickers NVDA,AMD
 docker compose exec backend python -m app.ingestion seed-metadata
 docker compose exec backend python -m app.ingestion news --query "Nvidia earnings" --days 7
 docker compose exec backend python -m app.ingestion replay                 # rebuild tables from raw_payloads, no api calls
 docker compose exec backend python -m app.ingestion status
 ```
-`--refresh` forces a new API call for cached data. Same operations over HTTP: `POST /ingest/prices/{symbol}`, `POST /ingest/metadata/{symbol}`, `POST /ingest/news`, `GET /ingest/budget`, `GET /ingest/status`; read back with `GET /price-bars`, `GET /ticker-metadata/{symbol}`, `GET /search-results`.
+`--refresh` forces a new API call for cached data. `budget` and `seed-prices --dry-run` only matter if an Alpha Vantage key is set. Same operations over HTTP: `POST /ingest/prices/{symbol}`, `POST /ingest/metadata/{symbol}`, `POST /ingest/news`, `GET /ingest/budget`, `GET /ingest/status`; read back with `GET /price-bars`, `GET /ticker-metadata/{symbol}`, `GET /search-results`.
 
 Tests:
 ```bash
