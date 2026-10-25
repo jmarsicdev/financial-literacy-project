@@ -17,7 +17,6 @@ services:
   redis:
     image: redis:7-alpine
     command: ["redis-server", "--appendonly", "yes"]
-    ports: ["6379:6379"]
     volumes: [redis_data:/data]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -30,7 +29,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-team5}:${POSTGRES_PASSWORD:-local_dev_only}@db:5432/${POSTGRES_DB:-financial_literacy}
       REDIS_URL: redis://redis:6379/0
       CORS_ORIGINS: http://localhost:5173
-    ports: ["8000:8000"]
+    ports: ["8605:8605"]
     depends_on:
       db: {condition: service_healthy}
       redis: {condition: service_healthy}
