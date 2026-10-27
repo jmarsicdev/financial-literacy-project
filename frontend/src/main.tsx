@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './style.css'
+import CompanyOverview from './CompanyOverview'
 
 type PriceBar = {
   symbol: string
@@ -119,6 +120,10 @@ function App() {
           </form>
 
           <p role="status">{message}</p>
+
+          {loadedSymbol && (
+            <CompanyOverview key={loadedSymbol} symbol={loadedSymbol} />
+          )}
 
           {prices.length > 0 && (
             <div style={{ overflowX: 'auto' }}>
