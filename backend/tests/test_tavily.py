@@ -78,3 +78,20 @@ def test_cache_key_normalizes_query():
 def test_public_params_days_only_for_news():
     assert tavily.public_params("q", "news", 3, 5)["days"] == 3
     assert "days" not in tavily.public_params("q", "general", 3, 5)
+
+def test_reject_tavily_promotional_page():
+    payload = {
+        "results": [
+            {
+                "title": "Tavily",
+                "url": "https://tavily.com/knowledge/company/test",
+                "content": "Promotional content from Tavily."
+            }
+        ]
+    }
+
+    result = tavily.normalize_results(payload, "inflation")
+
+    assert len(result.results) == 0
+    assert len(result.rejected) == 1
+    assert "blocked provider domain" in result.rejected[0]

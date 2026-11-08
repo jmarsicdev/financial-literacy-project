@@ -11,6 +11,12 @@ from .ingestion import Ingestor
 from .ingestion.config import load_settings
 from .ingestion.store import PostgresStore
 from .semantic_search.service import index_news, semantic_search
+from .ontology.service import (
+    list_concepts,
+    get_concept,
+    search_concepts,
+)
+from .ontology.hybrid_search import hybrid_search
 
 app = FastAPI(title="Team 5 Financial Literacy API", version="0.2.0")
 app.add_middleware(
@@ -235,5 +241,65 @@ def search_financial_documents(request: SemanticSearchRequest):
         raise HTTPException(
             status_code=503,
             detail="Semantic search unavailable",
+        ) from exc
+
+
+@app.get("/ontology/concepts")
+def list_financial_concepts(
+    category: str | None = Query(default=None, max_length=50),
+    limit: int = Query(default=100, ge=1, le=200),
+):
+    try:
+        concepts = list_concepts(category, limit)
+        return {"count": len(concepts), "items": concepts}
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Could not retrieve financial concepts",
+        ) from exc
+
+
+@app.get("/ontology/search")
+def search_financial_concepts(
+    query: str = Query(min_length=2, max_length=100),
+    limit: int = Query(default=20, ge=1, le=100),
+):
+    try:
+        results = search_concepts(query, limit)
+        return {"query": query, "count": len(results), "items": results}
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Could not search financial concepts",
+        ) from exc
+
+
+@app.get("/ontology/concepts/{concept_id}")
+def get_financial_concept(concept_id: int = Path(ge=1)):
+    try:
+        concept = get_concept(concept_id)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Could not retrieve financial concept",
+        ) from exc
+
+    if concept is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Financial concept not found",
+        )
+
+    return concept
+
+
+@app.post("/search/hybrid")
+def search_with_ontology(request: SemanticSearchRequest):
+    try:
+        return hybrid_search(request.query, request.top_k)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Ontology-enhanced search unavailable",
         ) from exc
 

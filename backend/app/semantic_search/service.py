@@ -31,9 +31,13 @@ def index_news() -> int:
             SELECT id, title, url, content
             FROM search_results
             WHERE content IS NOT NULL
-              AND length(trim(content)) > 0
-              AND url IS NOT NULL
-              AND length(trim(url)) > 0
+                AND length(trim(content)) > 0
+                AND url IS NOT NULL
+                AND length(trim(url)) > 0
+                AND COALESCE(source_domain, '') NOT IN (
+                    'tavily.com',
+                    'www.tavily.com'
+                )
             ORDER BY id
             """
         ).fetchall()

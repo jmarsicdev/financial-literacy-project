@@ -10,6 +10,7 @@ from pydantic import ValidationError
 
 from .. import dedup
 from ..models import SearchResult
+from urllib.parse import urlparse
 
 PROVIDER = "tavily"
 BASE_URL = "https://api.tavily.com/search"
@@ -125,6 +126,41 @@ def _clamp_score(value: Any) -> float | None:
         return None
     return max(0.0, min(1.0, score))
 
+BLOCKED_DOMAINS = {
+    "tavily.com",
+    "www.tavily.com",
+    "api.tavily.com",
+}
+
+
+def reject_news_result(
+    title: str,
+    url: str | None,
+    content: str | None,
+) -> str | None:
+    """Reject invalid sources without discarding short news summaries."""
+
+    if not title.strip():
+        return "missing title"
+
+    if not url:
+        return "missing URL"
+
+    parsed = urlparse(url)
+
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+        return "invalid URL"
+
+    domain = parsed.hostname.lower().rstrip(".")
+
+    if domain in BLOCKED_DOMAINS:
+        return "blocked provider domain"
+
+    if not content or not content.strip():
+        return "missing content"
+
+    return None
+
 
 def normalize_results(payload: dict[str, Any], query_text: str, provider: str = PROVIDER) -> NormalizedSearch:
     results = payload.get("results")
@@ -138,9 +174,16 @@ def normalize_results(payload: dict[str, Any], query_text: str, provider: str = 
             continue
         title = (item.get("title") or "").strip()
         url = (item.get("url") or "").strip() or None
-        if not title:
-            out.rejected.append(f"#{index}: missing title ({url or 'no url'})")
+        content = (item.get("content") or "").strip()
+
+        reason = reject_news_result(title, url, content)
+
+        if reason is not None:
+            out.rejected.append(f"#{index}: {reason} ({url or 'no url'})")
             continue
+
+
+
         published_at = parse_published(item.get("published_date"))
         if published_at is None:
             out.undated += 1
