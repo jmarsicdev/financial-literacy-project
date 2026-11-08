@@ -10,6 +10,7 @@ from .db import get_connection
 from .ingestion import Ingestor
 from .ingestion.config import load_settings
 from .ingestion.store import PostgresStore
+from .semantic_search.service import index_news, semantic_search
 
 app = FastAPI(title="Team 5 Financial Literacy API", version="0.2.0")
 app.add_middleware(
@@ -202,3 +203,37 @@ def ingest_news(
     except Exception as exc:
         raise HTTPException(status_code=503, detail="Ingestion failed") from exc
     return _result_response(result)
+
+
+class SemanticSearchRequest(BaseModel):
+    query: str = Field(min_length=2, max_length=500)
+    top_k: int = Field(default=5, ge=1, le=20)
+
+
+@app.post("/search/index-news")
+def index_financial_news():
+    try:
+        count = index_news()
+        return {"status": "ok", "indexed": count}
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Could not index financial news",
+        ) from exc
+
+
+@app.post("/search/semantic")
+def search_financial_documents(request: SemanticSearchRequest):
+    try:
+        results = semantic_search(request.query, request.top_k)
+        return {
+            "query": request.query,
+            "count": len(results),
+            "results": results,
+        }
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Semantic search unavailable",
+        ) from exc
+

@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS search_history (
 CREATE TABLE IF NOT EXISTS document_chunks (
   id BIGSERIAL PRIMARY KEY, source_url TEXT, title TEXT, chunk_text TEXT NOT NULL,
   chunk_index INTEGER NOT NULL DEFAULT 0, metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-  embedding vector(1536), created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  embedding vector(384), created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(source_url, chunk_index)
 );
 
