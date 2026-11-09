@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 from psycopg.rows import dict_row
 from .db import get_connection
+from .rag_governance.router import router as governance_router
 
 app = FastAPI(title="Team 5 Financial Literacy API", version="0.1.0")
 app.add_middleware(
@@ -13,6 +14,8 @@ app.add_middleware(
     allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:5173").split(","),
     allow_credentials=False, allow_methods=["*"], allow_headers=["*"]
 )
+app.include_router(governance_router)
+
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 def cache():
