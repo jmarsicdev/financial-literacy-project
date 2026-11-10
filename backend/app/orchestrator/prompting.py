@@ -19,10 +19,18 @@ LANGUAGE_RULES = [
 ]
 
 CITATION_RULES = [
-    "Every factual statement about a security, price, return, revenue, earnings, or market event must end with a citation marker like [1] that refers to the numbered Sources list.",
-    "Only cite sources from the list, and only for claims they actually support. Never invent numbers, dates, or sources.",
+    "Cite inline: put the marker at the end of the sentence it supports, before the period, like this: "
+    "'An ETF holds a basket of assets [1].' Every sentence that mentions a stock, fund, ETF, bond, price, return, "
+    "revenue, earnings, dividend, or market event needs a marker.",
+    "Only cite sources from the numbered Sources list, and only for claims they actually support. "
+    "Never invent numbers, dates, or sources.",
+    "Do not add a 'Sources' or 'References' section at the end; the markers are the citations. "
+    "Do not mention sources that are not relevant to the question; just leave them uncited.",
+    "Put a marker on each sentence, not just once per paragraph.",
+    "When you name a source in the text, use the publisher exactly as listed next to its number; never attribute a "
+    "statement to a publisher that is not in the Sources list.",
     "If the sources do not cover part of the question, say so plainly instead of guessing.",
-    "Keep the answer under 250 words, in short paragraphs, written for a beginner.",
+    "Keep the answer under 220 words, in short paragraphs, written for a beginner.",
 ]
 
 MODE_BLOCKS = {

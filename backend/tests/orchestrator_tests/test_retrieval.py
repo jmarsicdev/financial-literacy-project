@@ -126,7 +126,8 @@ def test_fetch_on_miss_error_is_contained():
     def boom(q, d):
         raise RuntimeError("tavily down")
 
-    search = FakeSearch([_row("Only one", "https://x.test/1", similarity=0.3)])
+    # one row above the relevance floor but below the fetch threshold: thin, so fetch fires and fails
+    search = FakeSearch([_row("Only one", "https://x.test/1", similarity=0.42)])
     outcome = _retriever(search, ingest_news=boom).retrieve("Nvidia earnings", fetch_on_miss=True, with_prices=False)
     assert "fetch_on_miss:error" in outcome.notes
     assert len(outcome.context.evidence_chunks) == 1
@@ -146,3 +147,19 @@ def test_leading_rows_come_first_and_price_context_last():
     assert outcome.tickers == ["NVDA"]
     assert "price_context:NVDA" in outcome.notes
     assert [c.citation_id for c in outcome.context.evidence_chunks] == ["1", "2", "3", "4", "5"]
+
+
+def test_low_similarity_rows_are_not_offered_as_evidence():
+    rows = [
+        _row("Relevant", "https://x.test/1", similarity=0.7),
+        _row("Barely", "https://x.test/2", similarity=0.41),
+        _row("Unrelated", "https://x.test/3", similarity=0.2),
+    ]
+    price = {"symbol": "NVDA", "bar_date": "2026-10-23", "adjusted_close": 1.0, "provider": "yfinance", "updated_at": "2026-10-25"}
+    retriever = _retriever(FakeSearch(rows), find_tickers=lambda q: ["NVDA"], load_bars=lambda s, n: [price])
+
+    outcome = retriever.retrieve("q", fetch_on_miss=False, with_prices=True)
+
+    titles = [c.title for c in outcome.context.evidence_chunks]
+    assert titles == ["Relevant", "Barely", "NVDA daily price history"]
+    assert "below_floor:1" in outcome.notes

@@ -184,11 +184,19 @@ def test_retrieval_failure_is_reported_and_answer_still_returned():
     assert response.answer
 
 
-def test_no_document_evidence_is_flagged():
+def test_glossary_only_evidence_is_still_evidence():
     response = build(FakeRetriever([])).ask("What is an ETF?")
+    assert "no_evidence" not in response.governance.reasons
+    assert [c.n for c in response.citations] == [1]   # the SEC glossary entry
+    assert response.citations[0].tier == "TIER_1"
+
+
+def test_no_evidence_at_all_is_flagged():
+    response = build(FakeRetriever([])).ask("Explain how markets react to news")
+    assert response.glossary == []
+    assert response.citations == []
     assert "no_evidence" in response.governance.reasons
-    assert response.governance.status == "REVIEW"
-    assert [c.n for c in response.citations] == [1]   # glossary only
+    assert response.governance.status in ("REVIEW", "BLOCK")
 
 
 def test_trace_only_when_debug():

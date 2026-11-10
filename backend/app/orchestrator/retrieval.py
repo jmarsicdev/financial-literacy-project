@@ -54,6 +54,22 @@ def dedup_results(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return kept
 
 
+def above_floor(rows: list[dict[str, Any]], floor: float) -> list[dict[str, Any]]:
+    """Keep rows whose similarity clears the floor; rows without a score (glossary, prices) are kept."""
+    kept = []
+    for row in rows:
+        score = row.get("similarity")
+        if score is None:
+            kept.append(row)
+            continue
+        try:
+            if float(score) >= floor:
+                kept.append(row)
+        except (TypeError, ValueError):
+            kept.append(row)
+    return kept
+
+
 def best_similarity(rows: list[dict[str, Any]]) -> float:
     scores = []
     for row in rows:
@@ -269,6 +285,11 @@ class Retriever:
                     results.append(row)
                     notes.append(f"price_context:{symbol}")
 
+        dropped = len(results)
+        results = above_floor(results, self.config.relevance_floor)
+        dropped -= len(results)
+        if dropped:
+            notes.append(f"below_floor:{dropped}")
         results = list(leading_rows or []) + results
         hybrid = {**hybrid, "results": results, "count": len(results)}
         context = build_hybrid_context(query, hybrid)

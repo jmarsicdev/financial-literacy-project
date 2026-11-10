@@ -16,7 +16,8 @@ class OrchestratorConfig:
     hf_token: str | None = None
     base_url: str = HF_BASE_URL         # any OpenAI-compatible /v1 (HF router, Ollama, vLLM)
     top_k: int = 5
-    min_similarity: float = 0.45
+    min_similarity: float = 0.45         # below this, fetch-on-miss fires (cited mode)
+    relevance_floor: float = 0.40        # document rows below this are not offered as evidence
     fetch_on_miss: bool = True
     fetch_days: int = 30
     max_tokens: int = 600
@@ -62,6 +63,7 @@ def load_config() -> OrchestratorConfig:
         base_url=base_url,
         top_k=_env_int("RETRIEVAL_TOP_K", 5),
         min_similarity=_env_float("MIN_SIMILARITY", 0.45),
+        relevance_floor=_env_float("RELEVANCE_FLOOR", 0.40),
         fetch_on_miss=_env_bool("FETCH_ON_MISS", True),
         fetch_days=_env_int("FETCH_ON_MISS_DAYS", 30),
         max_tokens=_env_int("LLM_MAX_TOKENS", 600),

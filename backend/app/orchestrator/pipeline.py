@@ -142,7 +142,7 @@ class Orchestrator:
             trace.add("retrieve", started, "failed")
         else:
             context = outcome.context
-            if not any(c.metadata.get("source") not in ("glossary",) for c in context.evidence_chunks):
+            if not context.evidence_chunks:
                 extra_reasons.append("no_evidence")
             trace.add(
                 "retrieve", started,
