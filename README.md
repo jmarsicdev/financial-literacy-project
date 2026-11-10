@@ -75,6 +75,27 @@ pytest                                                   # offline
 TEST_DATABASE_URL=postgresql://team5:local_dev_only@localhost:5433/financial_literacy pytest -m integration
 ```
 
+## Orchestrator (`POST /ask`)
+`backend/app/orchestrator/` ties the pieces together: governance classifies the question, hybrid search (plus the SEC glossary and, for ticker questions, stored price bars) supplies numbered evidence, the model writes a cited answer, and governance checks the answer before it is returned.
+
+```
+POST /ask {"query": "What is an ETF?", "top_k": 5, "debug": false}
+-> {"answer": "... [1]", "citations": [...], "governance": {"intent", "mode", "status", "reasons"}, "concepts": [...], "glossary": [...]}
+```
+
+`governance.status` is `PASS`, `REVIEW` (answer returned with caveats; expected for most news sources until the source registry grows), `BLOCK` (advice-like output was rejected twice and a glossary-only answer is returned), or `SKIPPED` (transactional or out-of-scope requests get a scripted reply and no model call).
+
+Model settings in `.env`:
+
+| Variable | Meaning |
+|---|---|
+| `HF_TOKEN` | Hugging Face token. Required for the Inference API; the account also needs inference credits (free accounts get HTTP 402 otherwise). |
+| `LLM_MODEL` | Model id. Default `Qwen/Qwen2.5-72B-Instruct` on Hugging Face; for Ollama use e.g. `qwen2.5:7b-instruct`. |
+| `LLM_BASE_URL` | Any OpenAI-compatible `/v1` endpoint. Default is the Hugging Face router; `http://localhost:11434/v1` runs against a local Ollama. |
+| `LLM_PROVIDER` | `huggingface`, `openai_compatible`, or `stub` (deterministic, no model). Inferred from the two settings above when unset. |
+
+With no token and no base url the stub generator answers from the evidence itself, which is what the tests use.
+
 ## GitHub collaboration
 Push this starter to your team's own repository. Grant the instructor account `qcheng1-prog` the access level required by your course. Every teammate should make their own genuine commit, preferably through a branch and pull request. Do not fabricate commits. Never commit `.env` or API keys; commit `.env.example` only.
 
