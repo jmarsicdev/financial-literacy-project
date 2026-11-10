@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './style.css'
 import CompanyOverview from './CompanyOverview'
+import AskPanel from './AskPanel'
 
 type PriceBar = {
   symbol: string
@@ -156,6 +157,8 @@ function App() {
           )}
         </article>
       </section>
+
+      <AskPanel />
 
       <p className="note">
         <a href="http://localhost:8000/docs">Open API documentation →</a>

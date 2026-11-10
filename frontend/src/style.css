@@ -62,3 +62,175 @@ button:disabled {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* temporary ask panel */
+.ask-panel {
+  margin: 24px 0;
+  padding: 24px;
+  background: white;
+  border: 1px solid #d8e2f0;
+  border-radius: 16px;
+}
+
+.ask-panel h2 {
+  margin: 8px 0 4px;
+}
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.example {
+  background: #eef4ff;
+  color: #2455a6;
+  border: 1px solid #bfd5ff;
+  padding: 8px 12px;
+  font-weight: 600;
+}
+
+.example:disabled {
+  cursor: wait;
+}
+
+.ask-panel textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #bfd5ff;
+  border-radius: 10px;
+  font: inherit;
+  resize: vertical;
+}
+
+.ask-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.debug-toggle {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.ask-error {
+  color: #9a1b1b;
+  background: #fff1f1;
+  border: 1px solid #f3c2c2;
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.ask-result {
+  margin-top: 18px;
+  border-top: 1px solid #e5ecf6;
+  padding-top: 16px;
+}
+
+.gov-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.badge-pass { background: #e6f7ec; color: #1d6b3a; }
+.badge-review { background: #fff4e0; color: #9a5b00; }
+.badge-block { background: #fde8e8; color: #9a1b1b; }
+.badge-skipped { background: #eef1f5; color: #475569; }
+
+.gov-meta {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.gov-text {
+  color: #415675;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  margin: 8px 0 0;
+}
+
+.answer {
+  margin: 14px 0;
+  line-height: 1.65;
+}
+
+.answer-block {
+  margin: 0 0 12px;
+}
+
+.cite {
+  font-size: 0.8em;
+  vertical-align: super;
+  text-decoration: none;
+  margin-left: 2px;
+}
+
+.citations h3 {
+  font-size: 1rem;
+  margin: 16px 0 6px;
+}
+
+.citations ol {
+  padding-left: 22px;
+  margin: 0;
+}
+
+.citations li {
+  margin: 6px 0;
+  line-height: 1.5;
+}
+
+.citations li.uncited {
+  color: #64748b;
+}
+
+.citations li.uncited a {
+  font-weight: 500;
+}
+
+.cite-meta {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.glossary {
+  margin-top: 12px;
+}
+
+.reasons {
+  color: #64748b;
+  font-size: 0.9rem;
+  padding-left: 20px;
+}
+
+.trace {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+
+.trace td {
+  padding: 4px 8px;
+  border-top: 1px solid #e5ecf6;
+  vertical-align: top;
+}
+
+.trace td.ms {
+  white-space: nowrap;
+  color: #64748b;
+}
