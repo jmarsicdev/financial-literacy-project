@@ -9,6 +9,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/sql/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+      - ./backend/sql/migrations/001_financial_ontology.sql:/docker-entrypoint-initdb.d/002-financial-ontology.sql:ro
+      - ./backend/sql/migrations/002_seed_financial_ontology.sql:/docker-entrypoint-initdb.d/003-seed-financial-ontology.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-team5} -d ${POSTGRES_DB:-financial_literacy}"]
       interval: 5s
@@ -29,7 +31,14 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-team5}:${POSTGRES_PASSWORD:-local_dev_only}@db:5432/${POSTGRES_DB:-financial_literacy}
       REDIS_URL: redis://redis:6379/0
       CORS_ORIGINS: http://localhost:5173
-    ports: ["8605:8605"]
+      ALPHA_VANTAGE_API_KEY: ${ALPHA_VANTAGE_API_KEY:-}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      ALPHA_VANTAGE_DAILY_LIMIT: ${ALPHA_VANTAGE_DAILY_LIMIT:-25}
+      HF_TOKEN: ${HF_TOKEN:-}
+      LLM_PROVIDER: ${LLM_PROVIDER:-}
+      LLM_MODEL: ${LLM_MODEL:-Qwen/Qwen2.5-72B-Instruct}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+    ports: ["8000:8605"]
     depends_on:
       db: {condition: service_healthy}
       redis: {condition: service_healthy}

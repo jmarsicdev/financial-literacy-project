@@ -1,0 +1,52 @@
+{
+  "query": "Nvidia earnings",
+  "response_time": 1.42,
+  "results": [
+    {
+      "title": "Nvidia posts record data center revenue as AI demand surges",
+      "url": "https://www.reuters.com/technology/nvidia-record-revenue-2026-10-20/?utm_source=twitter&utm_medium=social",
+      "content": "Nvidia reported record quarterly revenue on Wednesday, driven by demand for its AI chips.",
+      "score": 0.97,
+      "published_date": "Tue, 20 Oct 2026 21:05:00 GMT",
+      "raw_content": null
+    },
+    {
+      "title": "Nvidia posts record data center revenue as AI demand surges",
+      "url": "http://reuters.com/technology/nvidia-record-revenue-2026-10-20/#comments",
+      "content": "Nvidia reported record quarterly revenue on Wednesday, driven by demand for its AI chips.",
+      "score": 1.0,
+      "published_date": "2026-10-20T21:05:00Z",
+      "raw_content": null
+    },
+    {
+      "title": "Nvidia Posts Record Data Center Revenue as AI Demand Surges",
+      "url": "https://finance.yahoo.com/news/nvidia-posts-record-data-center-210500123.html",
+      "content": "Syndicated copy of the Reuters report.",
+      "score": 0.81,
+      "published_date": "2026-10-20T22:10:00+00:00",
+      "raw_content": null
+    },
+    {
+      "title": "What is a data center GPU? A beginner's guide",
+      "url": "https://www.investopedia.com/data-center-gpu-explained",
+      "content": "An explainer on GPUs used in data centers.",
+      "score": 0.66,
+      "published_date": null,
+      "raw_content": "Long raw page content here."
+    },
+    {
+      "title": "",
+      "url": "https://example.com/untitled",
+      "content": "A page with no title.",
+      "score": 0.5,
+      "published_date": "2026-10-19"
+    },
+    {
+      "title": "AMD unveils next-gen Instinct accelerators",
+      "url": "https://www.cnbc.com/2026/10/19/amd-instinct.html?fbclid=abc123",
+      "content": "AMD announced new accelerators to compete with Nvidia.",
+      "score": 1.3,
+      "published_date": "2026-10-19T13:00:00-04:00"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "stock": {
+    "requested_symbol": "NVDA",
+    "symbol": "NVDA",
+    "shortName": "NVIDIA Corporation",
+    "longName": "NVIDIA Corporation",
+    "quoteType": "EQUITY",
+    "sector": "Technology",
+    "industry": "Semiconductors",
+    "exchange": "NMS",
+    "fullExchangeName": "NasdaqGS",
+    "marketCap": 4512000000000,
+    "longBusinessSummary": "NVIDIA Corporation provides graphics and compute and networking solutions.",
+    "currency": "USD",
+    "country": "United States",
+    "website": "https://www.nvidia.com"
+  },
+  "etf": {
+    "requested_symbol": "SMH",
+    "symbol": "SMH",
+    "shortName": "VanEck Semiconductor ETF",
+    "longName": "VanEck Semiconductor ETF",
+    "quoteType": "ETF",
+    "sector": null,
+    "industry": null,
+    "exchange": "NGM",
+    "fullExchangeName": "NasdaqGM",
+    "marketCap": null,
+    "longBusinessSummary": "The fund normally invests at least 80% of its total assets in securities that comprise the fund's benchmark index.",
+    "category": "Technology",
+    "fundFamily": "VanEck"
+  },
+  "unknown": {
+    "requested_symbol": "ZZZZ",
+    "symbol": null,
+    "shortName": null,
+    "longName": null,
+    "quoteType": null,
+    "sector": null,
+    "industry": null,
+    "exchange": null,
+    "marketCap": null
+  }
+}
