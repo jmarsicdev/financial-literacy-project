@@ -104,18 +104,28 @@ def semantic_search(query: str, top_k: int = 5) -> list[dict]:
     with get_connection() as conn:
         conn.row_factory = dict_row
 
+        # Join back to the article each chunk was built from so results carry
+        # the source metadata that rag_governance needs for citations
+        # (publisher, publication date, retrieval date). Without these every
+        # governed answer is demoted to REVIEW with retrieval_metadata_incomplete.
         rows = conn.execute(
             """
             SELECT
-                id,
-                title,
-                source_url,
-                chunk_text,
-                metadata,
-                1 - (embedding <=> %s::vector) AS similarity
-            FROM document_chunks
-            WHERE embedding IS NOT NULL
-            ORDER BY embedding <=> %s::vector
+                dc.id,
+                dc.title,
+                dc.source_url,
+                dc.chunk_text,
+                dc.metadata,
+                sr.source_domain,
+                sr.source_domain AS publisher,
+                sr.published_at,
+                sr.fetched_at,
+                1 - (dc.embedding <=> %s::vector) AS similarity
+            FROM document_chunks dc
+            LEFT JOIN search_results sr
+                ON sr.id = NULLIF(dc.metadata->>'search_result_id', '')::bigint
+            WHERE dc.embedding IS NOT NULL
+            ORDER BY dc.embedding <=> %s::vector
             LIMIT %s
             """,
             (str(vector), str(vector), top_k),
