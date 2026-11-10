@@ -17,6 +17,7 @@ from .ontology.service import (
     search_concepts,
 )
 from .ontology.hybrid_search import hybrid_search
+from .rag_governance.router import router as governance_router
 
 app = FastAPI(title="Team 5 Financial Literacy API", version="0.2.0")
 app.add_middleware(
@@ -24,6 +25,8 @@ app.add_middleware(
     allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:5173").split(","),
     allow_credentials=False, allow_methods=["*"], allow_headers=["*"]
 )
+app.include_router(governance_router)
+
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 def cache():
