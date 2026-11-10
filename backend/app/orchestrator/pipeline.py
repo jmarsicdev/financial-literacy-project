@@ -16,7 +16,7 @@ from ..rag_governance.governance_pipeline import (
     evaluate_response_with_context,
 )
 from ..rag_governance.schemas import Intent
-from ..rag_governance.terminology import GlossaryEntry
+from ..rag_governance.terminology import GLOSSARY, GlossaryEntry
 from .config import OrchestratorConfig, load_config
 from .generator import Generator, GeneratorError, StubGenerator, build_generator
 from .prompting import build_messages
@@ -31,6 +31,9 @@ TOP_K_BY_MODE = {
     GenerationMode.SAFE_REDIRECT: 3,
 }
 FETCH_ON_MISS_MODES = {GenerationMode.CITED_INFORMATION}
+# SEC definitions always offered as evidence when redirecting a personal-advice question,
+# so the model has real planning concepts to cite instead of inventing 'SEC definitions'
+SAFE_REDIRECT_TERMS = ("risk_tolerance", "time_horizon", "diversification", "asset_allocation")
 
 SCRIPTED_TRANSACTIONAL = (
     "I can't place, submit, or execute trades or any other financial transaction. "
@@ -80,6 +83,13 @@ def glossary_rows(entries: list[GlossaryEntry]) -> list[dict[str, Any]]:
     return rows
 
 
+def planning_terms(existing: list[GlossaryEntry]) -> list[GlossaryEntry]:
+    """Append the safe-redirect planning entries not already matched from the query."""
+    seen = {entry.term for entry in existing}
+    extra = [GLOSSARY[key] for key in SAFE_REDIRECT_TERMS if key in GLOSSARY and GLOSSARY[key].term not in seen]
+    return list(existing) + extra
+
+
 def record_search_history(query: str) -> None:
     from ..db import get_connection
 
@@ -113,6 +123,8 @@ class Orchestrator:
 
         started = time.perf_counter()
         gov = self._govern_request(query)
+        if gov.generation_mode == GenerationMode.SAFE_REDIRECT:
+            gov.glossary_terms = planning_terms(gov.glossary_terms)
         trace.add("govern_request", started, f"{gov.classification.intent.value} -> {gov.generation_mode.value}")
         glossary_out = [
             GlossaryOut(term=e.term, definition=e.definition, source_title=e.source_title, source_url=e.source_url)

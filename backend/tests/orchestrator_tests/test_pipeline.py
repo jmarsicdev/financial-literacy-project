@@ -118,6 +118,10 @@ def test_personalized_advice_is_redirected_not_refused():
     assert response.governance.intent == "PERSONALIZED_ADVICE"
     assert response.governance.mode == "SAFE_REDIRECT"
     assert response.generated
+    # planning definitions are always offered as SEC evidence in safe-redirect mode
+    terms = [g.term for g in response.glossary]
+    assert "Risk Tolerance" in terms and "Investment Time Horizon" in terms and "Diversification" in terms
+    assert all(c.url.startswith("https://www.investor.gov/") for c in response.citations[: len(terms)])
     system_prompt = generator.calls[0][0]["content"]
     assert "safe redirect" in system_prompt.lower()
     assert "Do not give one" in system_prompt
