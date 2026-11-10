@@ -9,6 +9,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/sql/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
+      - ./backend/sql/migrations/001_financial_ontology.sql:/docker-entrypoint-initdb.d/002-financial-ontology.sql:ro
+      - ./backend/sql/migrations/002_seed_financial_ontology.sql:/docker-entrypoint-initdb.d/003-seed-financial-ontology.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-team5} -d ${POSTGRES_DB:-financial_literacy}"]
       interval: 5s
