@@ -1,9 +1,7 @@
 
 import os
-from datetime import date
-
-from anyio import Path
 import psycopg
+from pathlib import Path
 from pyspark.sql import SparkSession
 
 from backend.app.spark.gold import build_gold_features
@@ -88,9 +86,6 @@ def main():
         gold_df.show(truncate=False)
 
         print("Gold records:", gold_df.count())
-
-        from pathlib import Path
-
         output_dir = Path("data/gold")
         output_dir.mkdir(parents=True, exist_ok=True)
 

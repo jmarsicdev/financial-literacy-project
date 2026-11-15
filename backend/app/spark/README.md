@@ -80,7 +80,7 @@ and insufficient historical observations.
 
 ## Limitations
 
-- The current runner is configured for AAPL and NVDA only.
+- The runner defaults to AAPL and NVDA but supports additional stocks through the GOLD_SYMBOLS environment variable.
 - It uses a local PostgreSQL source, not the team's finalized Silver dataset.
 - The CSV export is intended for integration testing.
 - Two stocks are insufficient for meaningful ML clustering.
