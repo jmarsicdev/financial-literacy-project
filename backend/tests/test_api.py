@@ -66,3 +66,68 @@ def test_failed_ingest_returns_502(client, monkeypatch, av_notices):
     response = http.post("/ingest/prices/AMD")
     assert response.status_code == 502
     assert response.json()["detail"]["status"] == "failed"
+
+def test_gold_metrics_list_endpoint(client, monkeypatch):
+    http, _ = client
+
+    class FakeConnection:
+        row_factory = None
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            pass
+
+        def execute(self, query, params=None):
+            class Result:
+                def fetchall(self):
+                    return [
+                        {
+                            "symbol": "NVDA",
+                            "observations": 100,
+                            "return_observations": 99,
+                            "avg_daily_return_pct": 0.45,
+                            "annualized_volatility_pct": 32.5,
+                        }
+                    ]
+
+            return Result()
+
+    monkeypatch.setattr(
+        api, "get_connection", lambda: FakeConnection()
+    )
+
+    response = http.get("/spark/gold/metrics")
+
+    assert response.status_code == 200
+    assert response.json()["count"] == 1
+    assert response.json()["metrics"][0]["symbol"] == "NVDA"
+
+
+def test_gold_metrics_symbol_not_found(client, monkeypatch):
+    http, _ = client
+
+    class FakeConnection:
+        row_factory = None
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            pass
+
+        def execute(self, query, params=None):
+            class Result:
+                def fetchall(self):
+                    return []
+
+            return Result()
+
+    monkeypatch.setattr(
+        api, "get_connection", lambda: FakeConnection()
+    )
+
+    response = http.get("/spark/gold/metrics?symbol=UNKNOWN")
+
+    assert response.status_code == 404

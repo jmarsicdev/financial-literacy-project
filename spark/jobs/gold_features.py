@@ -1,4 +1,6 @@
-
+import os
+import psycopg2
+from psycopg2.extras import execute_values
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
     col,
@@ -27,6 +29,75 @@ spark.sparkContext.setLogLevel("WARN")
 SILVER_PATH = "/opt/spark-app/output/silver/price_bars"
 GOLD_PATH = "/opt/spark-app/output/gold/price_features"
 SUMMARY_PATH = "/opt/spark-app/output/gold/sql_symbol_summary"
+
+def persist_gold_metrics(summary_df):
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise RuntimeError("DATABASE_URL environment variable is not configured")
+
+    rows = [
+        (
+            row["symbol"],
+            row["observations"],
+            row["return_observations"],
+            row["avg_daily_return_pct"],
+            row["annualized_volatility_pct"],
+            row["avg_20d_volatility_pct"],
+            row["avg_daily_volume"],
+            row["max_drawdown_pct"],
+            row["next_day_up_pct"],
+            row["first_date"],
+            row["last_date"],
+        )
+        for row in summary_df.collect()
+    ]
+
+    if not rows:
+        print("No Gold symbol metrics to persist.")
+        return
+
+    insert_sql = """
+        INSERT INTO gold_symbol_metrics (
+            symbol,
+            observations,
+            return_observations,
+            avg_daily_return_pct,
+            annualized_volatility_pct,
+            avg_20d_volatility_pct,
+            avg_daily_volume,
+            max_drawdown_pct,
+            next_day_up_pct,
+            first_date,
+            last_date,
+            updated_at
+        )
+        VALUES %s
+        ON CONFLICT (symbol) DO UPDATE SET
+            observations = EXCLUDED.observations,
+            return_observations = EXCLUDED.return_observations,
+            avg_daily_return_pct = EXCLUDED.avg_daily_return_pct,
+            annualized_volatility_pct = EXCLUDED.annualized_volatility_pct,
+            avg_20d_volatility_pct = EXCLUDED.avg_20d_volatility_pct,
+            avg_daily_volume = EXCLUDED.avg_daily_volume,
+            max_drawdown_pct = EXCLUDED.max_drawdown_pct,
+            next_day_up_pct = EXCLUDED.next_day_up_pct,
+            first_date = EXCLUDED.first_date,
+            last_date = EXCLUDED.last_date,
+            updated_at = NOW()
+    """
+
+    with psycopg2.connect(database_url) as conn:
+        with conn.cursor() as cursor:
+            execute_values(
+                cursor,
+                insert_sql,
+                rows,
+                template=(
+                    "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())"
+                ),
+            )
+
+    print(f"Persisted {len(rows)} Gold symbol metrics to PostgreSQL.")
 
 print("\n========== GOLD: FEATURE ENGINEERING ==========")
 
@@ -145,6 +216,8 @@ summary_df.show(30, truncate=False)
 
 summary_df.write.mode("overwrite").parquet(SUMMARY_PATH)
 print("SQL summary output:", SUMMARY_PATH)
+
+persist_gold_metrics(summary_df)
 
 spark.stop()
 print("\nGold feature engineering and Spark SQL completed successfully.")

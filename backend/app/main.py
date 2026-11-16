@@ -66,6 +66,51 @@ def db_health():
     except Exception as exc:
         raise HTTPException(status_code=503, detail="Database unavailable") from exc
 
+@app.get("/spark/gold/metrics")
+def get_gold_metrics(
+    symbol: str | None = Query(default=None, min_length=1, max_length=15),
+    limit: int = Query(default=100, ge=1, le=500),
+):
+    try:
+        with get_connection() as conn:
+            conn.row_factory = dict_row
+
+            if symbol:
+                rows = conn.execute(
+                    """
+                    SELECT *
+                    FROM gold_symbol_metrics
+                    WHERE symbol = %s
+                    """,
+                    (symbol.strip().upper(),),
+                ).fetchall()
+
+                if not rows:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"No Gold metrics found for {symbol.strip().upper()}",
+                    )
+            else:
+                rows = conn.execute(
+                    """
+                    SELECT *
+                    FROM gold_symbol_metrics
+                    ORDER BY avg_daily_return_pct DESC NULLS LAST
+                    LIMIT %s
+                    """,
+                    (limit,),
+                ).fetchall()
+
+        return {"count": len(rows), "metrics": rows}
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Unable to retrieve Gold metrics",
+        ) from exc
+
 @app.get("/cache/health")
 def cache_health():
     try:
