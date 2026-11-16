@@ -42,6 +42,20 @@ services:
     depends_on:
       db: {condition: service_healthy}
       redis: {condition: service_healthy}
+  spark:
+    build: ./spark
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-team5}:${POSTGRES_PASSWORD:-local_dev_only}@db:5432/${POSTGRES_DB:-financial_literacy}
+      PYSPARK_PYTHON: python3
+    volumes:
+      - ./spark:/opt/spark-app
+      - ./backend/app:/opt/backend/app:ro
+      - ./backend/tests:/opt/backend/tests:ro
+    working_dir: /opt/spark-app
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["bash", "-lc", "sleep infinity"]
   frontend:
     build: ./frontend
     ports: ["5173:80"]

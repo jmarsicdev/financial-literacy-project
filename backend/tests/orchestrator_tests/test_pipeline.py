@@ -97,6 +97,49 @@ def test_educational_question_with_authoritative_evidence_passes():
     assert retriever.calls[0]["top_k"] == 3 and retriever.calls[0]["fetch_on_miss"] is False
     assert retriever.calls[0]["leading"] == 1
 
+def test_retrieved_source_is_not_marked_cited_when_answer_has_no_marker():
+    retriever = FakeRetriever([SEC_ROW])
+    generator = FakeGenerator(
+        "An ETF is an investment fund whose shares trade on an exchange."
+    )
+
+    response = build(retriever, generator).ask("What is an ETF?")
+
+    assert response.governance.status == "REVIEW"
+    assert response.citations
+    assert all(not citation.cited for citation in response.citations)
+
+    # Source reliability is independent of whether it was cited.
+    assert all(citation.tier is None for citation in response.citations)
+
+def test_missing_citations_are_repaired_on_retry():
+    generator = FakeGenerator(
+        "An ETF is an investment fund whose shares trade on an exchange.",
+        "An ETF is an investment fund whose shares trade on an exchange [1].",
+    )
+
+    response = build(FakeRetriever([SEC_ROW]), generator).ask("What is an ETF?")
+
+    assert len(generator.calls) == 2
+    assert "citation" in generator.calls[1][0]["content"].lower()
+    assert "[1]" in response.answer
+    assert response.citations[0].cited
+    assert response.governance.status == "PASS"
+
+
+def test_citation_retry_preserves_review_when_citations_are_still_missing():
+    generator = FakeGenerator(
+        "An ETF is an investment fund whose shares trade on an exchange.",
+        "An ETF is a fund traded on an exchange.",
+    )
+
+    response = build(FakeRetriever([SEC_ROW]), generator).ask("What is an ETF?")
+
+    assert len(generator.calls) == 2
+    assert response.governance.status == "REVIEW"
+    assert not any(citation.cited for citation in response.citations)
+    assert "[1]" not in response.answer
+
 
 def test_market_information_uses_cited_mode_and_marks_news_for_review():
     retriever = FakeRetriever([NEWS_ROW])
