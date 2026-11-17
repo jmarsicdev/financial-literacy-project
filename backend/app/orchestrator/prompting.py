@@ -54,6 +54,12 @@ STRICT_BLOCK = (
     "no 'you should', 'you ought to', 'I recommend', no allocation percentages for the user, no guarantees."
 )
 
+CITATION_REPAIR_BLOCK = (
+    "The previous draft did not include the required inline citations. Rewrite the answer using the numbered "
+    "Sources provided below. Add the correct [n] marker at the end of every factual sentence, before its period. "
+    "Use only source numbers that directly support the sentence. Do not invent citations or add a References section. "
+    "If a claim is unsupported by the provided sources, omit it or explicitly state that the sources do not establish it."
+)
 
 def build_messages(
     query: str,
@@ -61,6 +67,7 @@ def build_messages(
     context: RetrievalContext | None,
     *,
     strict: bool = False,
+    citation_repair: bool = False,
 ) -> list[dict[str, str]]:
     system_parts = [ROLE, "", "Language rules:"]
     system_parts += [f"- {rule}" for rule in LANGUAGE_RULES]
@@ -74,6 +81,9 @@ def build_messages(
         system_parts += ["", mode_block]
     if strict:
         system_parts += ["", STRICT_BLOCK]
+
+    if citation_repair:
+        system_parts += ["", CITATION_REPAIR_BLOCK]
 
     user_parts = [f"Question: {query.strip()}", ""]
 

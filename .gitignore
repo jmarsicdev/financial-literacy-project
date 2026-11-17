@@ -17,3 +17,6 @@ dist/
 
 # TypeScript build artifacts
 *.tsbuildinfo
+
+# Spark generated data, models, and predictions
+spark/output/

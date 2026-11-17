@@ -19,6 +19,7 @@ from .ontology.service import (
 from .ontology.hybrid_search import hybrid_search
 from .rag_governance.router import router as governance_router
 from .orchestrator.router import router as ask_router
+from .risk_profiles import router as risk_profiles_router
 
 app = FastAPI(title="Team 5 Financial Literacy API", version="0.2.0")
 app.add_middleware(
@@ -28,6 +29,7 @@ app.add_middleware(
 )
 app.include_router(governance_router)
 app.include_router(ask_router)
+app.include_router(risk_profiles_router)
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
@@ -65,6 +67,51 @@ def db_health():
         return {"status": "ok", "query_result": row[0]}
     except Exception as exc:
         raise HTTPException(status_code=503, detail="Database unavailable") from exc
+
+@app.get("/spark/gold/metrics")
+def get_gold_metrics(
+    symbol: str | None = Query(default=None, min_length=1, max_length=15),
+    limit: int = Query(default=100, ge=1, le=500),
+):
+    try:
+        with get_connection() as conn:
+            conn.row_factory = dict_row
+
+            if symbol:
+                rows = conn.execute(
+                    """
+                    SELECT *
+                    FROM gold_symbol_metrics
+                    WHERE symbol = %s
+                    """,
+                    (symbol.strip().upper(),),
+                ).fetchall()
+
+                if not rows:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"No Gold metrics found for {symbol.strip().upper()}",
+                    )
+            else:
+                rows = conn.execute(
+                    """
+                    SELECT *
+                    FROM gold_symbol_metrics
+                    ORDER BY symbol
+                    LIMIT %s
+                    """,
+                    (limit,),
+                ).fetchall()
+
+        return {"count": len(rows), "metrics": rows}
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Unable to retrieve Gold metrics",
+        ) from exc
 
 @app.get("/cache/health")
 def cache_health():

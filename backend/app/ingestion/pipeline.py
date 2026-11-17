@@ -16,6 +16,8 @@ from .store import CachedPayload, PayloadStore
 log = logging.getLogger("ingestion")
 
 DEFAULT_NEWS_MAX_AGE = timedelta(hours=6)
+# yfinance history is free to refetch; without an age limit a ticker never picks up new trading days
+DEFAULT_PRICE_MAX_AGE = timedelta(hours=24)
 
 
 @dataclass
@@ -63,6 +65,7 @@ class Ingestor:
         fetch_yf_history: Callable[..., dict[str, Any]] | None = None,
         fetch_yf_info: Callable[..., dict[str, Any]] | None = None,
         fetch_tavily: Callable[..., dict[str, Any]] | None = None,
+        price_max_age: timedelta | None = DEFAULT_PRICE_MAX_AGE,
     ) -> None:
         self.store = store
         self.settings = settings or load_settings()
@@ -70,6 +73,7 @@ class Ingestor:
         self._fetch_yf_history = fetch_yf_history or yahoo.fetch_history
         self._fetch_yf_info = fetch_yf_info or yahoo.fetch_info
         self._fetch_tavily = fetch_tavily or tavily.fetch_search
+        self.price_max_age = price_max_age
 
     # --- budget ---
 
@@ -92,7 +96,7 @@ class Ingestor:
             action: str
             if not refresh and self.store.get_cached(alpha_vantage.PROVIDER, alpha_vantage.cache_key(symbol)):
                 action = "cache:alpha_vantage"
-            elif not refresh and self.store.get_cached(yahoo.PROVIDER, yahoo.cache_key_history(symbol)):
+            elif not refresh and self.store.get_cached(yahoo.PROVIDER, yahoo.cache_key_history(symbol), self.price_max_age):
                 action = "cache:yfinance"
             elif has_key and remaining > 0:
                 action = "api:alpha_vantage"
@@ -113,7 +117,7 @@ class Ingestor:
             cached = self.store.get_cached(alpha_vantage.PROVIDER, alpha_vantage.cache_key(symbol))
             if cached is not None:
                 return self._load_av(cached.payload, symbol, source="cache")
-            cached = self.store.get_cached(yahoo.PROVIDER, yahoo.cache_key_history(symbol))
+            cached = self.store.get_cached(yahoo.PROVIDER, yahoo.cache_key_history(symbol), self.price_max_age)
             if cached is not None:
                 return self._load_yf_history(cached.payload, symbol, source="cache", status="ok")
 
@@ -136,6 +140,10 @@ class Ingestor:
         if status == "ok":
             return self._load_yf_history(payload, symbol, source="api", status="fallback" if notes else "ok", notes=notes)
         notes.append(f"yfinance {status}")
+        stale = None if refresh else self.store.get_cached(yahoo.PROVIDER, yahoo.cache_key_history(symbol))
+        if stale is not None:
+            notes.append("served older cached history")
+            return self._load_yf_history(stale.payload, symbol, source="cache", status="ok", notes=notes)
         return IngestResult("prices", symbol, "failed", provider=None, source="api", message="; ".join(notes))
 
     def _call_av(self, symbol: str) -> tuple[str, dict[str, Any]]:

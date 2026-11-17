@@ -189,6 +189,61 @@ def price_context_row(symbol: str, bars: list[dict[str, Any]]) -> dict[str, Any]
     }
 
 
+# --- risk profile context (Spark KMeans output) ---
+
+def load_risk_profile(symbol: str) -> dict[str, Any] | None:
+    from ..risk_profiles import get_symbol_profile
+
+    return get_symbol_profile(symbol, history=1)
+
+
+def quarter_label(quarter_start: Any) -> tuple[str, str]:
+    """('2026 Q3', 'July 1 to September 30, 2026') for a quarter's first day."""
+    from datetime import date, timedelta
+
+    start = quarter_start if isinstance(quarter_start, date) else date.fromisoformat(str(quarter_start)[:10])
+    next_month = start.month + 3
+    next_start = date(start.year + (next_month > 12), (next_month - 1) % 12 + 1, 1)
+    end = next_start - timedelta(days=1)
+    span = f"{start.strftime('%B')} {start.day} to {end.strftime('%B')} {end.day}, {start.year}"
+    return f"{start.year} Q{(start.month - 1) // 3 + 1}", span
+
+
+def risk_profile_row(symbol: str, profile: dict[str, Any] | None, api_url: str) -> dict[str, Any] | None:
+    """One evidence row describing a symbol's historical risk profile, phrased as past behavior only."""
+    if not profile or not profile.get("latest"):
+        return None
+    latest = profile["latest"]
+    quarter = str(latest["quarter_start"])
+    label, span = quarter_label(latest["quarter_start"])
+    benchmark = latest.get("benchmark") or "the benchmark"
+    text = (
+        f"Historical risk profile for {symbol} from this project's Spark clustering of past price behavior. "
+        f"In {label} (the three months from {span}), {symbol} was in the '{latest['risk_profile']}' group "
+        f"(group {int(latest['profile_rank']) + 1} of {int(latest['profile_count'])}, ordered from calmest): "
+        f"annualized volatility {float(latest['annualized_volatility']) * 100:.1f}%, "
+        f"largest drop within that quarter {float(latest['max_drawdown']) * 100:.1f}%, "
+        f"beta versus {benchmark} {float(latest['beta_vs_benchmark']):.2f}."
+    )
+    mix = profile.get("profile_mix") or []
+    if mix:
+        shares = "; ".join(f"{m['pct_of_quarters']:.0f}% of quarters in '{m['risk_profile']}'" for m in mix)
+        text += f" Across {profile.get('quarters_total')} quarters since {profile.get('first_quarter')}: {shares}."
+    text += " This describes past price behavior only; it is not a forecast or a recommendation."
+    return {
+        "id": f"risk-profile-{symbol}",
+        "title": f"{symbol} historical risk profile ({label})",
+        "source_url": f"{api_url}/risk-profiles/{symbol}",
+        "chunk_text": text,
+        "publisher": "Team 5 Spark risk model",
+        "source_domain": "team5-financial-literacy",
+        "published_at": quarter,
+        "fetched_at": str(latest.get("updated_at") or ""),
+        "similarity": None,
+        "metadata": {"source": "risk_profiles", "symbol": symbol},
+    }
+
+
 # --- the retriever ---
 
 class Retriever:
@@ -202,6 +257,7 @@ class Retriever:
         ingest_prices: Callable[[str], Any] | None = None,
         load_bars: Callable[[str, int], list[dict[str, Any]]] = load_recent_bars,
         find_tickers: Callable[[str], list[str]] = find_tickers,
+        load_profile: Callable[[str], dict[str, Any] | None] = load_risk_profile,
     ) -> None:
         self.config = config
         self._search = search
@@ -210,6 +266,7 @@ class Retriever:
         self._ingest_prices = ingest_prices
         self._load_bars = load_bars
         self._find_tickers = find_tickers
+        self._load_profile = load_profile
 
     # lazy defaults keep import-time free of model/db work
     def search(self, query: str, top_k: int) -> dict[str, Any]:
@@ -284,6 +341,14 @@ class Retriever:
                 if row:
                     results.append(row)
                     notes.append(f"price_context:{symbol}")
+                try:
+                    profile_row = risk_profile_row(symbol, self._load_profile(symbol), self.config.public_api_url)
+                except Exception as exc:  # noqa: BLE001  (table may not exist until the Spark job has run)
+                    log.warning("risk profile for %s unavailable: %s", symbol, exc)
+                    profile_row = None
+                if profile_row:
+                    results.append(profile_row)
+                    notes.append(f"risk_profile:{symbol}")
 
         dropped = len(results)
         results = above_floor(results, self.config.relevance_floor)

@@ -41,6 +41,10 @@ RULES = {
         r"\bmarket\s+(news|performance|update|trend)\b",
         r"\bhistorical\s+(stock|share|market)\s+performance\b",
         r"\bhow\s+did\b.{0,40}\b(stock|market|shares?)\b.{0,30}\b(today|yesterday)\b",
+        r"\b(risk|volatility)\s+profile\b",
+        r"\bhow\s+(volatile|risky)\b",
+        r"\b(historical|past)\s+(volatility|risk|drawdowns?)\b",
+        r"\bhow\s+(has|have|did)\b.{0,40}\bperform(ed)?\b",
     ],
     "research": [
         r"\bcompare\b",

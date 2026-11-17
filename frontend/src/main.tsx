@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './style.css'
 import CompanyOverview from './CompanyOverview'
 import AskPanel from './AskPanel'
+import RiskProfile from './RiskProfile'
 
 type PriceBar = {
   symbol: string
@@ -125,6 +126,8 @@ function App() {
           {loadedSymbol && (
             <CompanyOverview key={loadedSymbol} symbol={loadedSymbol} />
           )}
+
+          {loadedSymbol && <RiskProfile symbol={loadedSymbol} />}
 
           {prices.length > 0 && (
             <div style={{ overflowX: 'auto' }}>

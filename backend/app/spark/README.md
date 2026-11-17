@@ -8,20 +8,18 @@ Financial Literacy Service project.
 The Gold Layer is intended to provide aggregated stock features
 for downstream Spark ML clustering.
 
-## Data Source
+## Where it runs
 
-The current integration runner reads stock prices from the
-PostgreSQL `price_bars` table.
+`build_gold_features` in `gold.py` is the single implementation of the per-symbol risk summary.
+`spark/jobs/gold_features.py` calls it on the Silver price data for every symbol, formats the result with
+Spark SQL, and writes it to Parquet and to the `gold_symbol_metrics` table served by `GET /spark/gold/metrics`.
 
-Required columns:
+Required Silver columns:
 
 - symbol
 - bar_date
 - adjusted_close
 - volume
-
-The current runner processes the latest 252 observations
-for AAPL and NVDA.
 
 ## Gold Features
 
@@ -34,45 +32,25 @@ for AAPL and NVDA.
 
 The output also includes the stock symbol and date range.
 
-## Run Locally
+## Run
 
-Requirements:
+The function runs as part of the Spark pipeline (see `spark/README.md`):
 
-- Python 3.11
-- PySpark 3.5.0
-- PostgreSQL with stock-price records
-- psycopg
+docker compose exec spark spark-submit jobs/bronze_silver.py
 
-Start PostgreSQL:
+docker compose exec spark spark-submit jobs/gold_features.py
 
-docker compose up -d db
-
-Set DATABASE_URL to a valid PostgreSQL connection string.
-
-Run from the repository root:
-
-python -m backend.app.spark.run_gold
-
-The script exports:
-
-data/gold/stock_risk_features.csv
-
-### Selecting Stocks
-
-By default, the runner processes AAPL and NVDA using the latest
-252 historical price observations per stock.
-
-To select different stocks in PowerShell:
-
-$env:GOLD_SYMBOLS = "AAPL,NVDA,MSFT"
-
-Only stocks available in the PostgreSQL database will be processed.
+The earlier standalone runner (`run_gold.py`, two symbols to CSV) was removed once the pipeline job
+covered every symbol.
 
 ## Testing
 
 Run:
 
-python -m pytest backend/tests/test_spark_gold.py -v
+python -m pytest spark/tests/test_spark_gold.py -v
+
+The test lives under `spark/tests` because it needs PySpark and Java, which the backend image does not install.
+Inside Docker: `docker compose exec spark python -m pytest tests -v`.
 
 The current suite includes six tests covering calculations,
 record counts, missing columns, duplicates, invalid prices,
@@ -80,8 +58,5 @@ and insufficient historical observations.
 
 ## Limitations
 
-- The runner defaults to AAPL and NVDA but supports additional stocks through the GOLD_SYMBOLS environment variable.
-- It uses a local PostgreSQL source, not the team's finalized Silver dataset.
-- The CSV export is intended for integration testing.
-- Two stocks are insufficient for meaningful ML clustering.
+- Figures cover each symbol's full stored history, so symbols with longer histories are not directly comparable to recent listings.
 - The Gold features must be regenerated when the source data changes.

@@ -1,5 +1,8 @@
 # govern request -> retrieve -> prompt -> generate -> govern response -> respond
+
 from __future__ import annotations
+
+import re
 
 import logging
 import time
@@ -193,6 +196,35 @@ class Orchestrator:
                 generated = False
                 note = "BLOCK -> retry failed -> glossary fallback"
             trace.add("regenerate", retry_started, note)
+        if (
+            self.config.citation_repair
+            and generated
+            and result.status == PipelineStatus.REVIEW
+            and result.citation_validation.missing_citations
+        ):
+            retry_started = time.perf_counter()
+            retry_answer, retry_ok, retry_generator, retry_reason = self._generate(
+                query,
+                gov,
+                context,
+                strict=False,
+                citation_repair=True,
+            )
+
+            if retry_ok:
+                retry_result = self._govern_response(retry_answer, context)
+
+                if (retry_result.status != PipelineStatus.BLOCK and not retry_result.citation_validation.missing_citations):
+                    answer, result = retry_answer, retry_result
+                    generator_name = retry_generator
+                    note = f"REVIEW missing citations -> citation retry {retry_result.status.value}"
+                else:
+                    note = "Citation retry did not resolve missing citations"
+            else:
+                extra_reasons.append(retry_reason or "citation_retry_unavailable")
+                note = "Citation retry failed"
+
+            trace.add("regenerate", retry_started, note)
         trace.add("govern_response", started, note)
 
         status = result.status
@@ -203,7 +235,7 @@ class Orchestrator:
         self._remember(query)
         return AskResponse(
             answer=answer,
-            citations=self._citations(context, result),
+            citations=self._citations(context, result, answer),
             governance=self._governance_out(gov, status.value, reasons),
             concepts=[c.name for c in context.ontology.concepts],
             glossary=glossary_out,
@@ -229,16 +261,33 @@ class Orchestrator:
             return None
 
     def _generate(
-        self, query: str, gov: RequestGovernanceResult, context: RetrievalContext, *, strict: bool
+        self,
+        query: str,
+        gov: RequestGovernanceResult,
+        context: RetrievalContext,
+        *,
+        strict: bool,
+        citation_repair: bool = False,
     ) -> tuple[str, bool, str, str | None]:
-        messages = build_messages(query, gov, context, strict=strict)
+        messages = build_messages(
+            query,
+            gov,
+            context,
+            strict=strict,
+            citation_repair=citation_repair,
+        )
         try:
-            text = self.generator.generate(messages, context=context, glossary=gov.glossary_terms)
+            text = self.generator.generate(
+                messages,
+                context=context,
+                glossary=gov.glossary_terms,
+            )
             return text, True, self.generator.name, None
         except GeneratorError as exc:
             log.warning("generation failed: %s", exc)
         except Exception as exc:  # noqa: BLE001
             log.exception("generator crashed: %s", exc)
+
         return self._fallback_answer(gov, FALLBACK_UNAVAILABLE), False, "fallback", "generation_unavailable"
 
     # --- helpers ---
@@ -295,8 +344,17 @@ class Orchestrator:
         )
 
     @staticmethod
-    def _citations(context: RetrievalContext, result: ResponseGovernanceResult) -> list[CitationOut]:
-        tiers = {check.citation_id: check.reliability.tier.value for check in result.source_checks}
+    def _citations(
+        context: RetrievalContext,
+        result: ResponseGovernanceResult,
+        answer: str,
+    ) -> list[CitationOut]:
+        tiers = {
+            check.citation_id: check.reliability.tier.value
+            for check in result.source_checks
+        }
+        cited_ids = set(re.findall(r"\[(\d+)\]", answer))
+
         return [
             CitationOut(
                 n=int(chunk.citation_id),
@@ -306,7 +364,7 @@ class Orchestrator:
                 published_at=chunk.publication_date,
                 retrieved_at=chunk.retrieved_at,
                 tier=tiers.get(chunk.citation_id),
-                cited=chunk.citation_id in tiers,
+                cited=chunk.citation_id in cited_ids,
             )
             for chunk in context.evidence_chunks
         ]

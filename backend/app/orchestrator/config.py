@@ -24,6 +24,8 @@ class OrchestratorConfig:
     temperature: float = 0.2
     timeout_seconds: float = 60.0
     max_price_tickers: int = 2
+    public_api_url: str = "http://localhost:8000"   # link shown for evidence served by our own API
+    citation_repair: bool = True         # one extra model call when an answer is missing citations
 
 
 def _env_str(name: str) -> str | None:
@@ -69,4 +71,6 @@ def load_config() -> OrchestratorConfig:
         max_tokens=_env_int("LLM_MAX_TOKENS", 600),
         temperature=_env_float("LLM_TEMPERATURE", 0.2),
         timeout_seconds=_env_float("LLM_TIMEOUT_SECONDS", 60.0),
+        citation_repair=_env_bool("CITATION_REPAIR", True),
+        public_api_url=(_env_str("PUBLIC_API_URL") or "http://localhost:8000").rstrip("/"),
     )

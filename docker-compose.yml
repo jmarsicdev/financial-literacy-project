@@ -10,6 +10,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/sql/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
       - ./backend/sql/migrations/001_financial_ontology.sql:/docker-entrypoint-initdb.d/002-financial-ontology.sql:ro
+      - ./backend/sql/migrations/004_gold_symbol_metrics.sql:/docker-entrypoint-initdb.d/004-gold-symbol-metrics.sql:ro
+      - ./backend/sql/migrations/005_risk_profiles.sql:/docker-entrypoint-initdb.d/005-risk-profiles.sql:ro
       - ./backend/sql/migrations/002_seed_financial_ontology.sql:/docker-entrypoint-initdb.d/003-seed-financial-ontology.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-team5} -d ${POSTGRES_DB:-financial_literacy}"]
@@ -42,6 +44,21 @@ services:
     depends_on:
       db: {condition: service_healthy}
       redis: {condition: service_healthy}
+  spark:
+    build: ./spark
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-team5}:${POSTGRES_PASSWORD:-local_dev_only}@db:5432/${POSTGRES_DB:-financial_literacy}
+      PYSPARK_PYTHON: python3
+      PYTHONPATH: /opt          # lets jobs and tests import backend.app.spark
+    volumes:
+      - ./spark:/opt/spark-app
+      - ./backend/app:/opt/backend/app:ro
+      - ./backend/tests:/opt/backend/tests:ro
+    working_dir: /opt/spark-app
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["bash", "-lc", "sleep infinity"]
   frontend:
     build: ./frontend
     ports: ["5173:80"]
