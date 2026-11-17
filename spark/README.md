@@ -4,7 +4,11 @@
 
 This module implements the Sprint 4 data engineering and machine learning workflow using Apache Spark and PySpark.
 
-It reads historical market data from the project's PostgreSQL database, processes it through Bronze, Silver, and Gold layers, performs Spark SQL analysis, and trains two machine learning models to classify whether a stock's adjusted closing price increases on the next trading day.
+It reads historical market data from the project's PostgreSQL database, processes it through Bronze, Silver, and Gold layers, performs Spark SQL analysis, and trains Spark ML models.
+
+The model the application relies on is a **KMeans clustering of historical risk profiles** (one row per stock per quarter). It is descriptive: it says how a stock behaved in past quarters and makes no statement about future prices, which keeps it inside the project's no-advice policy.
+
+Two classifiers that try to predict whether a stock closes higher on the next trading day are kept as a **documented negative result**: neither beats the always-up baseline, and their output is not stored in the database or exposed through the API.
 
 Spark runs in a separate Docker service and does not replace or modify the existing FastAPI, React, PostgreSQL, or Redis services.
 
@@ -32,8 +36,33 @@ The workflow is:
 3. Spark validates, cleans, and deduplicates price records to create the Silver layer.
 4. Spark calculates historical features and next-trading-day labels to create the Gold layer.
 5. Spark SQL produces a summary of historical price performance by symbol.
-6. Spark MLlib trains Logistic Regression and Random Forest models.
-7. Test predictions and trained models are saved as Parquet and Spark model artifacts.
+6. Spark parses company metadata out of the Bronze payloads, joins daily returns to the SPY benchmark, and aggregates one row per stock per quarter.
+7. Spark MLlib clusters those rows into historical risk profiles with KMeans.
+8. Spark MLlib also trains Logistic Regression and Random Forest next-day classifiers (negative result).
+9. Models, cluster assignments, and test predictions are saved as Spark model artifacts and Parquet.
+
+### Where Spark fits in the system
+
+```mermaid
+flowchart LR
+  P[Alpha Vantage / yfinance / Tavily] --> ING[Ingestion layer]
+  ING --> PG[(PostgreSQL + pgvector\nraw_payloads, price_bars,\nsearch_results, document_chunks)]
+  PG --> B[Bronze\nraw payload Parquet]
+  PG --> S[Silver\nclean price bars]
+  B --> SM[Silver\nticker metadata]
+  S --> G1[Gold\ndaily features + SQL summary]
+  S --> G2[Gold\nquarterly risk features]
+  SM --> G2
+  G2 --> KM[Spark ML KMeans\nhistorical risk profiles]
+  G1 --> CL[Spark ML classifiers\nnegative result]
+  G1 --> GM[(gold_symbol_metrics)]
+  GM --> API[FastAPI\n/spark/gold/metrics]
+  PG --> RAG[Hybrid search + governance\n+ orchestrator /ask]
+  RAG --> UI[Dashboard]
+  API --> UI
+```
+
+Storage (Sprint 2) feeds both the generative layer (Sprint 3: retrieval, governance, `/ask`) and the Spark layer (Sprint 4). The predictive side complements the generative side by supplying computed, citable facts about a stock's past behavior instead of leaving the language model to characterize risk on its own.
 
 ### Data layers
 
@@ -41,7 +70,9 @@ The workflow is:
 |---|---|---|
 | Bronze | PostgreSQL `raw_payloads` | Raw payload Parquet |
 | Silver | PostgreSQL `price_bars` | Validated and deduplicated price Parquet |
+| Silver (metadata) | Bronze yfinance `info` payloads | Company name, asset type, sector per symbol |
 | Gold | Silver price data | Feature-engineered and labeled Parquet |
+| Gold (risk) | Silver prices joined to SPY returns and metadata | One row per symbol per quarter |
 
 ## Prerequisites
 
@@ -105,7 +136,21 @@ This job calculates:
 
 It also generates a Spark SQL summary grouped by symbol.
 
-### 5. Train Logistic Regression
+### 5. Cluster historical risk profiles
+
+```powershell
+docker compose exec spark spark-submit jobs/cluster_risk_profiles.py
+```
+
+The job:
+- Parses company metadata from the Bronze payloads into a Silver table.
+- Joins every stock's daily returns to the SPY benchmark by date.
+- Aggregates per stock per quarter with Spark SQL: annualized volatility, worst drawdown within the quarter, beta versus SPY, and average intraday range.
+- Splits chronologically by quarter (80/20), scales the features, and fits KMeans for k = 2 to 6.
+- Selects k by training silhouette and reports the silhouette on the held-out quarters.
+- Runs three Spark SQL queries over the assignments and saves the model and assignments.
+
+### 6. Train Logistic Regression
 
 ```powershell
 docker compose exec spark spark-submit jobs/train_model.py
@@ -118,7 +163,7 @@ The job:
 - Evaluates predictions on a chronological test set.
 - Saves the model and test predictions.
 
-### 6. Train Random Forest
+### 7. Train Random Forest
 
 ```powershell
 docker compose exec spark spark-submit jobs/train_random_forest.py
@@ -140,6 +185,10 @@ All generated files are stored under `spark/output/`.
 | Silver price bars | `spark/output/silver/price_bars` |
 | Gold features | `spark/output/gold/price_features` |
 | Spark SQL summary | `spark/output/gold/sql_symbol_summary` |
+| Silver ticker metadata | `spark/output/silver/ticker_metadata` |
+| Gold quarterly risk features | `spark/output/gold/risk_profile_features` |
+| KMeans risk profile model | `spark/output/models/risk_profile_kmeans` |
+| Risk profile assignments | `spark/output/predictions/risk_profiles` |
 | Logistic Regression model | `spark/output/models/logistic_regression` |
 | Logistic Regression predictions | `spark/output/predictions/test_predictions` |
 | Random Forest model | `spark/output/models/random_forest` |
@@ -167,7 +216,68 @@ The 19 Gold records excluded from labeling are the final available trading-day o
 
 The chronological test period begins on **July 7, 2017**.
 
-## Machine Learning Methodology
+## Historical Risk Profiles (KMeans)
+
+Results from a full run on November 16, 2026 (119,941 Silver price records, 19 symbols).
+
+| Stage | Records |
+|---|---:|
+| Bronze payloads read | 41 |
+| Silver ticker metadata (parsed from Bronze) | 19 |
+| Symbol-quarters with at least 40 daily returns | 1,893 |
+| Usable symbol-quarters | 1,740 |
+| Dropped (quarters before SPY history begins in 1993) | 153 |
+| Training symbol-quarters (before 2020) | 1,248 |
+| Testing symbol-quarters (2020 onward) | 492 |
+
+### Model selection
+
+| k | Training silhouette | Test silhouette |
+|---|---:|---:|
+| 2 | 0.6670 | 0.6214 |
+| 3 | 0.5685 | 0.4875 |
+| 4 | 0.5562 | 0.4576 |
+| 5 | 0.4704 | 0.4015 |
+| 6 | 0.4676 | 0.3825 |
+
+k = 2 is selected. The test silhouette is close to the training silhouette, so the two groups found in pre-2020 data still separate quarters from 2020 onward.
+
+### Spark SQL: what the profiles mean
+
+| Profile | Symbol-quarters | Avg volatility | Avg drawdown in quarter | Avg beta | Avg intraday range |
+|---|---:|---:|---:|---:|---:|
+| Lower historical variability | 1,231 | 26.2% | -10.5% | 1.17 | 2.05% |
+| Higher historical variability | 509 | 62.3% | -27.1% | 1.82 | 4.73% |
+
+### Spark SQL: profile mix by asset type
+
+| Asset type | Lower | Higher |
+|---|---:|---:|
+| Stocks | 62.7% | 37.3% |
+| ETFs | 91.1% | 8.9% |
+
+### Sample assignments (most recent complete quarter, test set)
+
+| Symbol | Quarter | Profile | Volatility | Drawdown | Beta |
+|---|---|---|---:|---:|---:|
+| SPY | 2026 Q3 | Lower | 11.0% | -3.4% | 1.00 |
+| AAPL | 2026 Q3 | Lower | 28.2% | -11.0% | 0.14 |
+| NVDA | 2026 Q3 | Lower | 38.3% | -10.6% | 1.89 |
+| META | 2026 Q3 | Higher | 51.8% | -20.9% | 1.39 |
+| AMD | 2026 Q3 | Higher | 68.1% | -23.0% | 3.41 |
+| ARM | 2026 Q3 | Higher | 86.5% | -33.4% | 4.66 |
+
+Across all quarters, SPY is in the lower group 99% of the time and ARM and PLTR are in the higher group every quarter.
+
+### Limitations
+
+- Two groups is a coarse description. Silhouette favors k = 2; three groups would read more naturally but separate less cleanly.
+- The label reflects all four features together, so a quarter with high volatility but low beta can fall in the lower group (CRM, 2026 Q3).
+- Three of the four features measure price variability and are correlated, which is part of why the separation is clean.
+- Nineteen technology-heavy symbols is a narrow universe; the groups describe these symbols relative to each other, not the whole market.
+- A profile describes a past quarter. It is not a forecast and must be presented with its date.
+
+## Next-Day Direction Classifiers (Negative Result)
 
 ### Prediction objective
 
@@ -235,6 +345,17 @@ Logistic Regression has higher recall, while Random Forest has slightly higher p
 - Historical price patterns do not guarantee future performance.
 - The evaluation results do not establish that either model can reliably predict future stock prices.
 - Spark is currently configured for local execution in a single container, not a distributed multi-node cluster.
+- Source rows are fetched from PostgreSQL through the driver and then handed to Spark. Reading with Spark's JDBC source would let Spark partition the load itself and is the natural next step.
+- The per-symbol summary served by `GET /spark/gold/metrics` is ordered by symbol and deliberately omits any next-day statistic.
+
+## Tests and local settings
+
+```powershell
+docker compose exec spark python -m pytest tests -v
+```
+
+- `SPARK_OUTPUT` overrides the output folder (default `/opt/spark-app/output`).
+- Databases created before this sprint need `backend/sql/migrations/004_gold_symbol_metrics.sql` applied once.
 
 ## Reproducibility
 
@@ -242,8 +363,9 @@ Run the jobs in the following order:
 
 1. `bronze_silver.py`
 2. `gold_features.py`
-3. `train_model.py`
-4. `train_random_forest.py`
+3. `cluster_risk_profiles.py`
+4. `train_model.py`
+5. `train_random_forest.py`
 
 Ensure the database has historical price data before running the pipeline.
 
