@@ -9,5 +9,14 @@ dist/
 .pytest_cache/
 .DS_Store
 
+# Local Spark environment
+.venv-spark/
+
+# Generated Gold Layer data
+/data/gold/
+
+# TypeScript build artifacts
+*.tsbuildinfo
+
 # Spark generated data, models, and predictions
 spark/output/
