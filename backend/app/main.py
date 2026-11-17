@@ -19,6 +19,7 @@ from .ontology.service import (
 from .ontology.hybrid_search import hybrid_search
 from .rag_governance.router import router as governance_router
 from .orchestrator.router import router as ask_router
+from .risk_profiles import router as risk_profiles_router
 
 app = FastAPI(title="Team 5 Financial Literacy API", version="0.2.0")
 app.add_middleware(
@@ -28,6 +29,7 @@ app.add_middleware(
 )
 app.include_router(governance_router)
 app.include_router(ask_router)
+app.include_router(risk_profiles_router)
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 

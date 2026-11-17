@@ -56,7 +56,10 @@ flowchart LR
   G2 --> KM[Spark ML KMeans\nhistorical risk profiles]
   G1 --> CL[Spark ML classifiers\nnegative result]
   G1 --> GM[(gold_symbol_metrics)]
-  GM --> API[FastAPI\n/spark/gold/metrics]
+  GM --> API[FastAPI\n/spark/gold/metrics\n/risk-profiles]
+  KM --> RP[(risk_profiles)]
+  RP --> API
+  RP --> RAG
   PG --> RAG[Hybrid search + governance\n+ orchestrator /ask]
   RAG --> UI[Dashboard]
   API --> UI
@@ -149,6 +152,7 @@ The job:
 - Splits chronologically by quarter (80/20), scales the features, and fits KMeans for k = 2 to 6.
 - Selects k by training silhouette and reports the silhouette on the held-out quarters.
 - Runs three Spark SQL queries over the assignments and saves the model and assignments.
+- Replaces the `risk_profiles` table in PostgreSQL, which feeds `GET /risk-profiles/{symbol}`, the dashboards, and the assistant.
 
 ### 6. Train Logistic Regression
 
@@ -355,7 +359,7 @@ docker compose exec spark python -m pytest tests -v
 ```
 
 - `SPARK_OUTPUT` overrides the output folder (default `/opt/spark-app/output`).
-- Databases created before this sprint need `backend/sql/migrations/004_gold_symbol_metrics.sql` applied once.
+- Databases created before this sprint need `backend/sql/migrations/004_gold_symbol_metrics.sql` and `005_risk_profiles.sql` applied once.
 
 ## Reproducibility
 

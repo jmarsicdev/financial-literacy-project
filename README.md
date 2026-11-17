@@ -96,6 +96,35 @@ Model settings in `.env`:
 
 With no token and no base url the stub generator answers from the evidence itself, which is what the tests use.
 
+## Spark layer and historical risk profiles
+`spark/` holds the Sprint 4 pipeline (see `spark/README.md` for commands, record counts, and results): Bronze and Silver Parquet, Gold features, Spark SQL summaries, a KMeans clustering of each stock's behavior per quarter, and two next-day classifiers kept as a negative result.
+
+The clustering job writes one row per symbol per quarter to the `risk_profiles` table, which is used in three places:
+
+- `GET /risk-profiles` and `GET /risk-profiles/{symbol}`: latest quarter, share of quarters in each group, recent history.
+- The React dashboard shows a "Historical risk profile" card after a ticker is loaded.
+- `POST /ask` adds the profile as a numbered source when a question names a ticker, so the assistant cites computed figures instead of characterizing risk on its own.
+
+A profile describes a past quarter. It is not a forecast and is always shown with its quarter.
+
+```bash
+docker compose exec backend python -m app.ingestion seed-prices
+docker compose exec backend python -m app.ingestion seed-metadata
+docker compose exec spark spark-submit jobs/bronze_silver.py
+docker compose exec spark spark-submit jobs/gold_features.py
+docker compose exec spark spark-submit jobs/cluster_risk_profiles.py
+```
+
+Cached price history is refreshed from yfinance once it is more than 24 hours old; if the refresh fails the older cached history is served.
+
+## Streamlit dashboard
+`app.py` is a second front end that talks to the same API: the chat tab calls `POST /ask`, the prices tab shows stored bars and the risk profile, and the news tab lists stored articles.
+
+```bash
+pip install -r requirements-dashboard.txt
+streamlit run app.py          # backend expected at http://localhost:8000, override with BACKEND_API_URL
+```
+
 ## GitHub collaboration
 Push this starter to your team's own repository. Grant the instructor account `qcheng1-prog` the access level required by your course. Every teammate should make their own genuine commit, preferably through a branch and pull request. Do not fabricate commits. Never commit `.env` or API keys; commit `.env.example` only.
 

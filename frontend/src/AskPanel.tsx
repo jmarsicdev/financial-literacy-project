@@ -50,6 +50,11 @@ const EXAMPLES: { label: string; query: string; expect: string }[] = [
     expect: 'Cited information: news plus stored daily prices, with a review caveat on news sources.',
   },
   {
+    label: 'Risk profile',
+    query: 'How volatile has NVDA been historically?',
+    expect: 'Cited information: the Spark risk model appears as a numbered source.',
+  },
+  {
     label: 'Concept links',
     query: 'How does inflation affect bond prices?',
     expect: 'Ontology match: related concepts expand the search.',

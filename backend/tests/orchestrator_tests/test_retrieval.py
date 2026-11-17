@@ -87,6 +87,7 @@ def _retriever(search, **overrides):
         ingest_prices=lambda s: SimpleNamespace(status="ok", source="cache"),
         load_bars=lambda s, n: [],
         find_tickers=lambda q: [],
+        load_profile=lambda s: None,
     )
     defaults.update(overrides)
     return Retriever(OrchestratorConfig(provider="stub", min_similarity=0.45), search=search, **defaults)

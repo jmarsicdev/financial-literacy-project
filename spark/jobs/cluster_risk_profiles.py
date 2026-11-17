@@ -300,6 +300,46 @@ profiles.write.mode("overwrite").parquet(ASSIGNMENT_PATH)
 
 print("Model saved:", MODEL_PATH)
 print("Profile assignments saved:", ASSIGNMENT_PATH)
+
+
+def persist_profiles(rows) -> None:
+    """Replace the risk_profiles table so the API and the assistant read the latest run."""
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        print("DATABASE_URL not set; skipping PostgreSQL write (Parquet output is still complete).")
+        return
+
+    import psycopg2
+    from psycopg2.extras import execute_values
+
+    values = [
+        (
+            r["symbol"], r["quarter_start"], r["risk_profile"], int(r["profile_rank"]), best_k,
+            float(r["annualized_volatility"]), float(r["max_drawdown"]), float(r["beta_vs_benchmark"]),
+            float(r["avg_intraday_range"]), int(r["return_observations"]), r["asset_type"], r["sector"],
+            BENCHMARK, r["split"], float(best_train), float(best_test),
+        )
+        for r in rows
+    ]
+    with psycopg2.connect(database_url) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("DELETE FROM risk_profiles")
+            execute_values(
+                cursor,
+                """
+                INSERT INTO risk_profiles (
+                    symbol, quarter_start, risk_profile, profile_rank, profile_count,
+                    annualized_volatility, max_drawdown, beta_vs_benchmark, avg_intraday_range,
+                    return_observations, asset_type, sector, benchmark, data_split,
+                    train_silhouette, test_silhouette
+                ) VALUES %s
+                """,
+                values,
+            )
+    print(f"Persisted {len(values)} risk profile rows to PostgreSQL.")
+
+
+persist_profiles(profiles.collect())
 print("\nRisk profile clustering completed successfully.")
 
 spark.stop()

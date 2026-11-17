@@ -234,3 +234,69 @@ button:disabled {
   white-space: nowrap;
   color: #64748b;
 }
+
+
+/* historical risk profile card */
+.risk-panel {
+  margin: 20px 0;
+  padding: 22px;
+  border: 1px solid #d8e2f0;
+  border-radius: 14px;
+  background: #fbfcff;
+}
+
+.risk-panel h2 {
+  margin: 6px 0 8px;
+}
+
+.profile-tag,
+.quarter-chip {
+  display: inline-block;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.profile-tag {
+  padding: 2px 10px;
+}
+
+.rank-0 { background: #e6f1fb; color: #1f4f82; }
+.rank-1 { background: #fdebd3; color: #8a4b00; }
+.rank-2 { background: #fbdcdc; color: #8a1f1f; }
+
+.risk-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.risk-facts div {
+  background: white;
+  border: 1px solid #e5ecf6;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.risk-facts dt {
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+.risk-facts dd {
+  margin: 4px 0 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.quarter-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 14px;
+}
+
+.quarter-chip {
+  padding: 3px 9px;
+  font-size: 0.78rem;
+}
