@@ -72,7 +72,10 @@ Only stocks available in the PostgreSQL database will be processed.
 
 Run:
 
-python -m pytest backend/tests/test_spark_gold.py -v
+python -m pytest spark/tests/test_spark_gold.py -v
+
+The test lives under `spark/tests` because it needs PySpark and Java, which the backend image does not install.
+Inside Docker: `docker compose exec spark python -m pytest tests -v`.
 
 The current suite includes six tests covering calculations,
 record counts, missing columns, duplicates, invalid prices,

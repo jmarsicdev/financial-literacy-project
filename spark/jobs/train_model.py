@@ -1,4 +1,4 @@
-
+import os
 from pyspark.sql import SparkSession, Window
 from pyspark.sql.functions import (
     col, lead, isnan, count, avg, row_number
@@ -24,7 +24,7 @@ spark = (
 
 spark.sparkContext.setLogLevel("WARN")
 
-BASE = "/opt/spark-app/output"
+BASE = os.getenv("SPARK_OUTPUT", "/opt/spark-app/output")
 GOLD_PATH = f"{BASE}/gold/price_features"
 MODEL_PATH = f"{BASE}/models/logistic_regression"
 PREDICTION_PATH = f"{BASE}/predictions/test_predictions"

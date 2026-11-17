@@ -1,4 +1,4 @@
-
+import os
 from pyspark.sql import SparkSession, Window
 from pyspark.sql.functions import col, lead, isnan
 from pyspark.ml import Pipeline
@@ -22,7 +22,7 @@ spark = (
 
 spark.sparkContext.setLogLevel("WARN")
 
-BASE = "/opt/spark-app/output"
+BASE = os.getenv("SPARK_OUTPUT", "/opt/spark-app/output")
 
 GOLD_PATH = f"{BASE}/gold/price_features"
 MODEL_PATH = f"{BASE}/models/random_forest"

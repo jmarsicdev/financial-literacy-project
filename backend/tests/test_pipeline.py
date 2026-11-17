@@ -9,13 +9,9 @@ from tests.conftest import make_settings
 
 
 class Fake:
-
-
     def __init__(self, *payloads):
         self.payloads = list(payloads)
         self.calls = []
-
-
 
     def __call__(self, *args, **kwargs):
         self.calls.append((args, kwargs))
@@ -23,8 +19,6 @@ class Fake:
         if isinstance(item, Exception):
             raise item
         return item
-
-
 
 
 def build(store, settings, *, av=None, yf_hist=None, yf_info=None, tv=None):
@@ -39,8 +33,6 @@ def build(store, settings, *, av=None, yf_hist=None, yf_info=None, tv=None):
 # ---------------------------------------------------------------------------
 # Price bars
 # ---------------------------------------------------------------------------
-
-
 
 
 def test_av_success_then_cache_hit(store, settings, av_adjusted):
@@ -59,16 +51,12 @@ def test_av_success_then_cache_hit(store, settings, av_adjusted):
     assert ingestor.av_budget().used == 1
 
 
-
-
 def test_refresh_bypasses_cache(store, settings, av_adjusted):
     ingestor, av, *_ = build(store, settings, av=Fake(av_adjusted))
     ingestor.ingest_prices("NVDA")
     ingestor.ingest_prices("NVDA", refresh=True)
     assert len(av.calls) == 2
     assert ingestor.av_budget().used == 2
-
-
 
 
 def test_no_key_uses_yfinance(store, yf_history):
@@ -87,8 +75,6 @@ def test_no_key_uses_yfinance(store, yf_history):
     ("daily_limit", "rate_limited"),
     ("bad_symbol", "error"),
 ])
-
-
 def test_av_notice_is_recorded_and_falls_back(store, settings, av_notices, yf_history, notice_key, expected_status):
     ingestor, av, yf, *_ = build(store, settings, av=Fake(av_notices[notice_key]), yf_hist=Fake(yf_history))
     result = ingestor.ingest_prices("NVDA")
@@ -103,8 +89,6 @@ def test_av_notice_is_recorded_and_falls_back(store, settings, av_notices, yf_hi
     assert store.get_cached(alpha_vantage.PROVIDER, alpha_vantage.cache_key("NVDA")) is None
 
 
-
-
 def test_av_transport_error_recorded_as_error(store, settings, yf_history):
     boom = httpx.ConnectError("connection refused")
     ingestor, av, yf, *_ = build(store, settings, av=Fake(boom), yf_hist=Fake(yf_history))
@@ -114,16 +98,12 @@ def test_av_transport_error_recorded_as_error(store, settings, yf_history):
     assert recorded.status == "error" and "ConnectError" in recorded.payload["error"]
 
 
-
-
 def test_av_symbol_mismatch_falls_back(store, settings, av_adjusted, yf_history):
     # fixture is NVDA; ask for AMD
     ingestor, av, yf, *_ = build(store, settings, av=Fake(av_adjusted), yf_hist=Fake(yf_history))
     result = ingestor.ingest_prices("AMD")
     assert result.status == "fallback"
     assert "alpha_vantage invalid" in result.message
-
-
 
 
 def test_budget_exhausted_skips_av(store, settings, av_adjusted, yf_history, clock):
@@ -144,8 +124,6 @@ def test_budget_exhausted_skips_av(store, settings, av_adjusted, yf_history, clo
     assert ingestor.av_budget().remaining == 2
 
 
-
-
 def test_budget_exhausted_no_fallback_is_skipped(store, av_adjusted):
     settings = make_settings(limit=0)
     ingestor, av, yf, *_ = build(store, settings, av=Fake(av_adjusted))
@@ -155,16 +133,11 @@ def test_budget_exhausted_no_fallback_is_skipped(store, av_adjusted):
     assert store.table_counts()["price_bars"]["rows"] == 0
 
 
-
-
-
 def test_yfinance_failure_after_av_failure_is_failed(store, settings, av_notices):
     ingestor, *_ = build(store, settings, av=Fake(av_notices["daily_limit"]), yf_hist=Fake(RuntimeError("yf down")))
     result = ingestor.ingest_prices("NVDA")
     assert result.status == "failed"
     assert "alpha_vantage rate_limited" in result.message and "yfinance error" in result.message
-
-
 
 
 def test_cached_yfinance_preferred_over_spending_budget(store, settings, av_adjusted, yf_history):
@@ -176,8 +149,6 @@ def test_cached_yfinance_preferred_over_spending_budget(store, settings, av_adju
     result = with_key.ingest_prices("NVDA")
     assert result.source == "cache" and result.provider == "yfinance"
     assert len(av2.calls) == 0
-
-
 
 
 def test_plan_prices(store, settings, av_adjusted):
@@ -201,8 +172,6 @@ def test_plan_prices(store, settings, av_adjusted):
 # ---------------------------------------------------------------------------
 
 
-
-
 def test_metadata_cache_first(store, settings, yf_info):
     ingestor, _, _, info, _ = build(store, settings, yf_info=Fake(yf_info["stock"]))
     first = ingestor.ingest_metadata("nvda")
@@ -211,8 +180,6 @@ def test_metadata_cache_first(store, settings, yf_info):
     assert second.source == "cache"
     assert len(info.calls) == 1
     assert store.ticker_metadata["NVDA"].sector == "Technology"
-
-
 
 
 def test_metadata_unknown_symbol_fails(store, settings, yf_info):
@@ -225,8 +192,6 @@ def test_metadata_unknown_symbol_fails(store, settings, yf_info):
 # ---------------------------------------------------------------------------
 # News
 # ---------------------------------------------------------------------------
-
-
 
 
 def test_news_normalizes_dedups_and_caches(store, settings, tavily_news, clock):
@@ -247,14 +212,10 @@ def test_news_normalizes_dedups_and_caches(store, settings, tavily_news, clock):
     assert stale.source == "api" and len(tv.calls) == 2
 
 
-
-
 def test_news_without_key_is_skipped(store, tavily_news):
     ingestor, *_, tv = build(store, make_settings(tavily_key=None), tv=Fake(tavily_news))
     result = ingestor.ingest_news("anything")
     assert result.status == "skipped" and len(tv.calls) == 0
-
-
 
 
 def test_news_rate_limited_recorded(store, settings):
@@ -267,8 +228,6 @@ def test_news_rate_limited_recorded(store, settings):
 # ---------------------------------------------------------------------------
 # Replay
 # ---------------------------------------------------------------------------
-
-
 
 
 def test_replay_rebuilds_tables_without_api_calls(store, settings, av_adjusted, yf_history, yf_info, tavily_news):

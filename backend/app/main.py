@@ -95,7 +95,7 @@ def get_gold_metrics(
                     """
                     SELECT *
                     FROM gold_symbol_metrics
-                    ORDER BY avg_daily_return_pct DESC NULLS LAST
+                    ORDER BY symbol
                     LIMIT %s
                     """,
                     (limit,),

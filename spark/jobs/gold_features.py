@@ -26,9 +26,10 @@ spark = (
 )
 spark.sparkContext.setLogLevel("WARN")
 
-SILVER_PATH = "/opt/spark-app/output/silver/price_bars"
-GOLD_PATH = "/opt/spark-app/output/gold/price_features"
-SUMMARY_PATH = "/opt/spark-app/output/gold/sql_symbol_summary"
+OUTPUT = os.getenv("SPARK_OUTPUT", "/opt/spark-app/output")
+SILVER_PATH = f"{OUTPUT}/silver/price_bars"
+GOLD_PATH = f"{OUTPUT}/gold/price_features"
+SUMMARY_PATH = f"{OUTPUT}/gold/sql_symbol_summary"
 
 def persist_gold_metrics(summary_df):
     database_url = os.getenv("DATABASE_URL")
@@ -45,7 +46,6 @@ def persist_gold_metrics(summary_df):
             row["avg_20d_volatility_pct"],
             row["avg_daily_volume"],
             row["max_drawdown_pct"],
-            row["next_day_up_pct"],
             row["first_date"],
             row["last_date"],
         )
@@ -66,7 +66,6 @@ def persist_gold_metrics(summary_df):
             avg_20d_volatility_pct,
             avg_daily_volume,
             max_drawdown_pct,
-            next_day_up_pct,
             first_date,
             last_date,
             updated_at
@@ -80,7 +79,6 @@ def persist_gold_metrics(summary_df):
             avg_20d_volatility_pct = EXCLUDED.avg_20d_volatility_pct,
             avg_daily_volume = EXCLUDED.avg_daily_volume,
             max_drawdown_pct = EXCLUDED.max_drawdown_pct,
-            next_day_up_pct = EXCLUDED.next_day_up_pct,
             first_date = EXCLUDED.first_date,
             last_date = EXCLUDED.last_date,
             updated_at = NOW()
@@ -93,7 +91,7 @@ def persist_gold_metrics(summary_df):
                 insert_sql,
                 rows,
                 template=(
-                    "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())"
+                    "(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())"
                 ),
             )
 
@@ -203,13 +201,12 @@ summary_df = spark.sql("""
         ROUND(AVG(volatility_20) * 100, 4) AS avg_20d_volatility_pct,
         ROUND(AVG(volume), 0) AS avg_daily_volume,
         ROUND(MIN(drawdown) * 100, 4) AS max_drawdown_pct,
-        ROUND(AVG(next_day_up) * 100, 2) AS next_day_up_pct,
         MIN(bar_date) AS first_date,
         MAX(bar_date) AS last_date
     FROM gold_price_features
     GROUP BY symbol
     HAVING COUNT(daily_return) >= 2
-    ORDER BY avg_daily_return_pct DESC
+    ORDER BY symbol
 """)
 
 summary_df.show(30, truncate=False)

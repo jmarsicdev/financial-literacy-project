@@ -28,7 +28,7 @@ spark.sparkContext.setLogLevel("WARN")
 DATABASE_URL = os.environ["DATABASE_URL"]
 conn = psycopg2.connect(DATABASE_URL)
 
-OUTPUT = "/opt/spark-app/output"
+OUTPUT = os.getenv("SPARK_OUTPUT", "/opt/spark-app/output")
 
 
 # --------------------------------------------------
