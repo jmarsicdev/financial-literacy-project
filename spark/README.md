@@ -137,7 +137,8 @@ This job calculates:
 - Twenty-day volatility.
 - Next-trading-day price direction label.
 
-It also generates a Spark SQL summary grouped by symbol.
+It also generates a Spark SQL summary grouped by symbol. The per-symbol risk figures in that summary come from
+`build_gold_features` in `backend/app/spark/gold.py`, the single tested implementation; the job's query formats them.
 
 ### 5. Cluster historical risk profiles
 

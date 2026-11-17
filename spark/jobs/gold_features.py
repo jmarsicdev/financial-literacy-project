@@ -17,6 +17,10 @@ from pyspark.sql.functions import (
 )
 from pyspark.sql.window import Window
 
+# Single implementation of the per-symbol risk summary (tested in spark/tests/test_spark_gold.py).
+# The spark container mounts backend/app at /opt/backend/app and sets PYTHONPATH=/opt.
+from backend.app.spark.gold import build_gold_features
+
 
 spark = (
     SparkSession.builder
@@ -188,25 +192,29 @@ gold_df.createOrReplaceTempView("gold_price_features")
 
 print("\n========== SPARK SQL: SYMBOL PERFORMANCE AND RISK SUMMARY ==========")
 
+# Per-symbol risk figures come from build_gold_features (validated and unit-tested).
+# This query only formats them and adds the average 20-day volatility from the daily features.
+build_gold_features(silver_df).createOrReplaceTempView("symbol_risk_summary")
+
 summary_df = spark.sql("""
     SELECT
-        symbol,
-        COUNT(*) AS observations,
-        COUNT(daily_return) AS return_observations,
-        ROUND(AVG(daily_return) * 100, 4) AS avg_daily_return_pct,
-        ROUND(
-            STDDEV_SAMP(daily_return) * SQRT(252) * 100,
-            4
-        ) AS annualized_volatility_pct,
-        ROUND(AVG(volatility_20) * 100, 4) AS avg_20d_volatility_pct,
-        ROUND(AVG(volume), 0) AS avg_daily_volume,
-        ROUND(MIN(drawdown) * 100, 4) AS max_drawdown_pct,
-        MIN(bar_date) AS first_date,
-        MAX(bar_date) AS last_date
-    FROM gold_price_features
-    GROUP BY symbol
-    HAVING COUNT(daily_return) >= 2
-    ORDER BY symbol
+        s.symbol,
+        s.trading_days AS observations,
+        s.return_observations,
+        ROUND(s.avg_daily_return * 100, 4) AS avg_daily_return_pct,
+        ROUND(s.annualized_volatility * 100, 4) AS annualized_volatility_pct,
+        ROUND(v.avg_volatility_20 * 100, 4) AS avg_20d_volatility_pct,
+        ROUND(s.avg_daily_volume, 0) AS avg_daily_volume,
+        ROUND(s.max_drawdown * 100, 4) AS max_drawdown_pct,
+        s.start_date AS first_date,
+        s.end_date AS last_date
+    FROM symbol_risk_summary s
+    LEFT JOIN (
+        SELECT symbol, AVG(volatility_20) AS avg_volatility_20
+        FROM gold_price_features
+        GROUP BY symbol
+    ) v ON v.symbol = s.symbol
+    ORDER BY s.symbol
 """)
 
 summary_df.show(30, truncate=False)
