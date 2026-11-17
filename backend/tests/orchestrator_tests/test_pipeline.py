@@ -265,3 +265,18 @@ def test_history_failure_does_not_break_the_answer():
 
     response = build(FakeRetriever([SEC_ROW]), history=boom).ask("What is an ETF?")
     assert response.answer
+
+
+def test_citation_repair_can_be_switched_off():
+    generator = FakeGenerator("An ETF is an investment fund whose shares trade on an exchange.")
+    orchestrator = Orchestrator(
+        OrchestratorConfig(provider="stub", citation_repair=False),
+        retriever=FakeRetriever([SEC_ROW]),
+        generator=generator,
+        history=None,
+    )
+
+    response = orchestrator.ask("What is an ETF?")
+
+    assert len(generator.calls) == 1
+    assert response.governance.status == "REVIEW"

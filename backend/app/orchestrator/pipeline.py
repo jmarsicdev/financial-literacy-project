@@ -197,7 +197,8 @@ class Orchestrator:
                 note = "BLOCK -> retry failed -> glossary fallback"
             trace.add("regenerate", retry_started, note)
         if (
-            generated
+            self.config.citation_repair
+            and generated
             and result.status == PipelineStatus.REVIEW
             and result.citation_validation.missing_citations
         ):
