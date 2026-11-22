@@ -7,7 +7,7 @@ The system uses a React + TypeScript frontend, FastAPI backend, PostgreSQL 16 wi
 | Service | Image / language | Local port | Internal or exposed |
 |---|---|---:|---|
 | Frontend | React/TypeScript, served by Nginx | 5173 → 80 | Exposed locally |
-| Backend | Python 3.12, FastAPI/Uvicorn | 8000 | Exposed locally |
+| Backend | Python 3.12, FastAPI/Uvicorn | 8000 → 8605 | Exposed locally; Nginx proxies `/api` to `backend:8605` |
 | PostgreSQL + pgvector | `pgvector/pgvector:pg16` | 5433 → 5432 | Exposed for local development; internal in production |
 | Redis | `redis:7-alpine` | 6379 | Exposed for local development; internal in production |
 
@@ -30,8 +30,11 @@ Ports are local-development defaults only. Instructor will coordinate k3s ports.
 | `ALPHA_VANTAGE_API_KEY` | Optional second market-data source; prices come from yfinance when unset |
 | `ALPHA_VANTAGE_DAILY_LIMIT` | Calls allowed per rolling 24h window (default 25, the free tier) |
 | `TAVILY_API_KEY` | News/search ingestion |
-| `OPENAI_API_KEY` | Optional embedding provider |
-| `ANTHROPIC_API_KEY` | Optional agent integration |
+| `HF_TOKEN` | Hugging Face token for the hosted model |
+| `LLM_BASE_URL`, `LLM_MODEL`, `LLM_PROVIDER` | OpenAI-compatible model endpoint; `http://ollama:11434/v1` with the optional `local-llm` compose profile |
+| `LLM_TIMEOUT_SECONDS` | Model call timeout (raise for CPU-only local models) |
+| `PUBLIC_API_URL` | Base URL shown in citations for evidence served by this API |
+| `ASK_CACHE_TTL_SECONDS` | How long generated `/ask` answers stay in Redis (default 86400; 0 disables) |
 
 Use local `.env` or deployment secret management for actual values. Commit `.env.example` only.
 
@@ -49,4 +52,4 @@ Use local `.env` or deployment secret management for actual values. Commit `.env
 **Reserved for instructor completion.** Instructor will configure k3s services, ports, secrets, ingress, and persistent volume claims after synchronizing service ports. Do not assume local ports are production ports.
 
 ## 7. Known issues and next steps
-yfinance and Tavily ingestion is wired in with a persistent raw-payload cache; Alpha Vantage is supported behind a daily budget guard but unused because the free tier gates the adjusted-price endpoint. Redis health and demo caching are available, but provider response caching in Redis is future work (PostgreSQL `raw_payloads` currently fills that role). pgvector is enabled and `document_chunks` is prepared, but embeddings and similarity search are not implemented. Sprint 3 should add event/price joins, daily returns, rolling volatility, fuzzy deduplication and retry/backoff on transport errors. Before deployment, keep database/cache ports private and use managed secrets.
+yfinance and Tavily ingestion is wired in with a persistent raw-payload cache; Alpha Vantage is supported behind a daily budget guard but unused because the free tier gates the adjusted-price endpoint. Redis caches generated `/ask` answers (`ASK_CACHE_TTL_SECONDS`); provider API payloads are cached in PostgreSQL `raw_payloads`. Embeddings (MiniLM-L6, 384-d) and pgvector similarity search are implemented and feed `POST /ask`; Spark computes daily returns, rolling volatility, drawdown and beta per symbol-quarter. Event/price joins with window returns and retry/backoff on transport errors remain open. Before deployment, keep database/cache ports private and use managed secrets.
