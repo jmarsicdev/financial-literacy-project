@@ -4,6 +4,7 @@ import './style.css'
 import CompanyOverview from './CompanyOverview'
 import AskPanel from './AskPanel'
 import RiskProfile from './RiskProfile'
+import PriceChart from './PriceChart'
 
 type PriceBar = {
   symbol: string
@@ -129,7 +130,11 @@ function App() {
 
           {loadedSymbol && <RiskProfile symbol={loadedSymbol} />}
 
+          {loadedSymbol && prices.length > 0 && <PriceChart key={loadedSymbol} symbol={loadedSymbol} />}
+
           {prices.length > 0 && (
+            <details className="price-table">
+              <summary>Show the last {prices.length} daily bars as a table</summary>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', textAlign: 'left' }}>
                 <caption>Recent daily prices for {loadedSymbol}</caption>
@@ -157,6 +162,7 @@ function App() {
                 </tbody>
               </table>
             </div>
+            </details>
           )}
         </article>
       </section>
