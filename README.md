@@ -19,6 +19,13 @@ cp .env.example .env
 docker compose up --build
 ```
 
+For a demo-ready stack in one command (builds, migrates, seeds prices/metadata/news, builds the Spark risk profiles, pulls the local model if configured, loads the committed demo answers, and verifies the showcase question), run:
+
+```bash
+scripts/demo-setup.sh            # repair or refresh in place; safe to repeat
+scripts/demo-setup.sh --fresh    # wipe this project's volumes first
+```
+
 Open http://localhost:5173, API docs at http://localhost:8000/docs. Verify:
 ```bash
 curl http://localhost:8000/health
@@ -84,6 +91,14 @@ POST /ask {"query": "What is an ETF?", "top_k": 5, "debug": false}
 ```
 
 Answers the model produced are kept in Redis for `ASK_CACHE_TTL_SECONDS` (default one day) keyed by the normalized question and model; a repeat question returns the stored answer with `cached: true` and `cached_at`. Send `"cache": false` to force a fresh model call. Fallback, scripted and blocked answers are never cached.
+
+Demo answers are committed in `backend/app/demo/ask_answers.json` and loaded into Redis when the backend starts (`ASK_CACHE_SEED`, default on; they never expire). A fresh clone therefore answers the showcase questions instantly without a model. To refresh them after regenerating:
+
+```bash
+docker compose exec backend python -m app.orchestrator.cache dump /tmp/answers.json "What is an ETF?" "What is the current stock price trend for NVDA?"
+docker compose cp backend:/tmp/answers.json backend/app/demo/ask_answers.json
+docker compose exec backend python -m app.orchestrator.cache load /app/app/demo/ask_answers.json --replace   # or just restart
+```
 
 `governance.status` is `PASS`, `REVIEW` (answer returned with caveats: a claim lacks a citation, a source is unregistered or user-generated, or the answer rests on journalism alone with no official data or regulator source behind it), `BLOCK` (advice-like output was rejected twice and a glossary-only answer is returned), or `SKIPPED` (transactional or out-of-scope requests get a scripted reply and no model call).
 

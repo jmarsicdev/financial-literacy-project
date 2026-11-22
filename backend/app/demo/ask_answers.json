@@ -1,0 +1,638 @@
+{
+  "generated_with": "qwen2.5:7b-instruct",
+  "entries": [
+    {
+      "query": "What is the current stock price trend for NVDA?",
+      "cached_at": "2026-11-22T21:41:25+00:00",
+      "response": {
+        "answer": "On November 20, 2026, NVIDIA Corporation (NVDA) closed at $125.53, down -14.01% from the previous close [6]. According to Yahoo Finance, the stock's 52-week range is from $124.50 to $243.37 [3]. The stock has been experiencing volatility, with a -19.60% change from November 16 to November 20 [6].",
+        "citations": [
+          {
+            "n": 1,
+            "title": "Stock (Investor.gov Glossary)",
+            "url": "https://www.investor.gov/introduction-investing/investing-basics/glossary",
+            "publisher": "U.S. Securities and Exchange Commission (SEC)",
+            "published_at": "",
+            "retrieved_at": "2026-11-22T21:38:51.248837+00:00",
+            "tier": null,
+            "cited": false
+          },
+          {
+            "n": 2,
+            "title": "NVIDIA Corporation (NVDA) Stock Price, Quote, News & Analysis | Seeking Alpha",
+            "url": "https://seekingalpha.com/symbol/NVDA",
+            "publisher": "seekingalpha.com",
+            "published_at": "2026-11-16 15:00:00+00:00",
+            "retrieved_at": "2026-11-22 20:45:31.820482+00:00",
+            "tier": null,
+            "cited": false
+          },
+          {
+            "n": 3,
+            "title": "NVIDIA Corporation (NVDA) Stock Price, News, Quote & History - Yahoo Finance",
+            "url": "https://finance.yahoo.com/quote/NVDA",
+            "publisher": "finance.yahoo.com",
+            "published_at": "2026-11-22 16:00:00+00:00",
+            "retrieved_at": "2026-11-22 20:45:31.820482+00:00",
+            "tier": "TIER_3",
+            "cited": true
+          },
+          {
+            "n": 4,
+            "title": "NVDA Stock Price | NVIDIA Corp. Stock Quote (U.S.: Nasdaq) | MarketWatch",
+            "url": "https://www.marketwatch.com/investing/stock/nvda",
+            "publisher": "marketwatch.com",
+            "published_at": "2026-11-20 19:00:00+00:00",
+            "retrieved_at": "2026-11-22 20:45:31.820482+00:00",
+            "tier": null,
+            "cited": false
+          },
+          {
+            "n": 5,
+            "title": "NVIDIA Stock Price History - Investing.com",
+            "url": "https://www.investing.com/equities/nvidia-corp-historical-data",
+            "publisher": "investing.com",
+            "published_at": "2026-11-17 20:59:59+00:00",
+            "retrieved_at": "2026-11-22 20:45:31.820482+00:00",
+            "tier": null,
+            "cited": false
+          },
+          {
+            "n": 6,
+            "title": "NVDA daily price history",
+            "url": "https://finance.yahoo.com/quote/NVDA/history/",
+            "publisher": "yfinance",
+            "published_at": "2026-11-20",
+            "retrieved_at": "2026-11-22 21:38:56.858604+00:00",
+            "tier": "TIER_2",
+            "cited": true
+          },
+          {
+            "n": 7,
+            "title": "NVDA historical risk profile (2026 Q3)",
+            "url": "http://localhost:8000/risk-profiles/NVDA",
+            "publisher": "Team 5 Spark risk model",
+            "published_at": "2026-07-01",
+            "retrieved_at": "2026-11-22 20:49:36.150597+00:00",
+            "tier": null,
+            "cited": false
+          }
+        ],
+        "governance": {
+          "intent": "MARKET_INFORMATION",
+          "action": "ALLOW_WITH_CAUTION",
+          "mode": "CITED_INFORMATION",
+          "confidence": 0.85,
+          "status": "PASS",
+          "reasons": [],
+          "risk_indicators": [],
+          "guidance": [
+            "Use reliable and relevant sources.",
+            "Cite factual financial claims.",
+            "Identify dates and data freshness where relevant."
+          ]
+        },
+        "concepts": [],
+        "glossary": [
+          {
+            "term": "Stock",
+            "definition": "A share of stock represents an ownership interest in a corporation. Its value can rise or fall.",
+            "source_title": "Investor.gov Glossary",
+            "source_url": "https://www.investor.gov/introduction-investing/investing-basics/glossary"
+          }
+        ],
+        "generated": true,
+        "generator": "openai_compatible"
+      }
+    },
+    {
+      "query": "What is an ETF?",
+      "cached_at": "2026-11-22T21:42:42+00:00",
+      "response": {
+        "answer": "An ETF, or Exchange-Traded Fund, pools money from investors to hold a portfolio of assets, such as stocks, bonds, or commodities [1]. These assets are traded on securities exchanges at market prices throughout the trading day [1].",
+        "citations": [
+          {
+            "n": 1,
+            "title": "Exchange-Traded Fund (ETF) (Exchange-Traded Funds (ETFs))",
+            "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/mutual-funds-and-exchange-traded-2",
+            "publisher": "U.S. Securities and Exchange Commission (SEC)",
+            "published_at": "",
+            "retrieved_at": "2026-11-22T21:41:26.174086+00:00",
+            "tier": "TIER_1",
+            "cited": true
+          }
+        ],
+        "governance": {
+          "intent": "EDUCATIONAL",
+          "action": "ALLOW",
+          "mode": "STANDARD",
+          "confidence": 0.85,
+          "status": "PASS",
+          "reasons": [],
+          "risk_indicators": [],
+          "guidance": [
+            "Provide a clear, educational explanation.",
+            "Avoid unsupported financial claims."
+          ]
+        },
+        "concepts": [],
+        "glossary": [
+          {
+            "term": "Exchange-Traded Fund (ETF)",
+            "definition": "An ETF pools money from investors and holds a portfolio of assets. ETF shares trade on securities exchanges at market prices during trading hours.",
+            "source_title": "Exchange-Traded Funds (ETFs)",
+            "source_url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/mutual-funds-and-exchange-traded-2"
+          }
+        ],
+        "generated": true,
+        "generator": "openai_compatible"
+      }
+    },
+    {
+      "query": "Should I buy NVDA?",
+      "cached_at": "2026-11-22T21:56:28+00:00",
+      "response": {
+        "answer": "Deciding whether to buy NVDA involves considering several factors. First, your risk tolerance [1] is important. NVDA has shown significant volatility, with a recent drop of -14.01% [8]. Second, your investment time horizon [2] matters. If you need the money soon, NVDA might not be suitable due to its price fluctuations. Diversification [3] is also key; holding NVDA alongside other assets can help manage risk. Asset allocation [4] should be considered, as it involves spreading investments across different asset classes. Given NVDA's high beta of 2.16 [6], it is more volatile than the market. Historically, NVDA has been in the 'lower historical variability' group [9], but past performance does not guarantee future results. For personalized advice, consult a licensed professional.",
+        "citations": [
+          {
+            "n": 1,
+            "title": "Risk Tolerance (Asset Allocation and Diversification)",
+            "url": "https://www.investor.gov/introduction-investing/getting-started/asset-allocation",
+            "publisher": "U.S. Securities and Exchange Commission (SEC)",
+            "published_at": "",
+            "retrieved_at": "2026-11-22T21:48:03.091847+00:00",
+            "tier": "TIER_1",
+            "cited": true
+          },
+          {
+            "n": 2,
+            "title": "Investment Time Horizon (Asset Allocation and Diversification)",
+            "url": "https://www.investor.gov/introduction-investing/getting-started/asset-allocation",
+            "publisher": "U.S. Securities and Exchange Commission (SEC)",
+            "published_at": "",
+            "retrieved_at": "2026-11-22T21:48:03.091847+00:00",
+            "tier": "TIER_1",
+            "cited": true
+          },
+          {
+            "n": 3,
+            "title": "Diversification (Diversification)",
+            "url": "https://www.investor.gov/introduction-investing/investing-basics/glossary/diversification",
+            "publisher": "U.S. Securities and Exchange Commission (SEC)",
+            "published_at": "",
+            "retrieved_at": "2026-11-22T21:48:03.091847+00:00",
+            "tier": "TIER_1",
+            "cited": true
+          },
+          {
+            "n": 4,
+            "title": "Asset Allocation (Asset Allocation and Diversification)",
+            "url": "https://www.investor.gov/introduction-investing/getting-started/asset-allocation",
+            "publisher": "U.S. Securities and Exchange Commission (SEC)",
+            "published_at": "",
+            "retrieved_at": "2026-11-22T21:48:03.091847+00:00",
+            "tier": "TIER_1",
+            "cited": true
+          },
+          {
+            "n": 5,
+            "title": "NVIDIA Corporation (NVDA) Stock Price, Quote, News & Analysis | Seeking Alpha",
+            "url": "https://seekingalpha.com/symbol/NVDA",
+            "publisher": "seekingalpha.com",
+            "published_at": "2026-11-16 15:00:00+00:00",
+            "retrieved_at": "2026-11-22 20:45:31.820482+00:00",
+            "tier": null,
+            "cited": false
+          },
+          {
+            "n": 6,
+            "title": "NVDA Stock Price | NVIDIA Corp. Stock Quote (U.S.: Nasdaq) | MarketWatch",
+            "url": "https://www.marketwatch.com/investing/stock/nvda",
+            "publisher": "marketwatch.com",
+            "published_at": "2026-11-20 19:00:00+00:00",
+            "retrieved_at": "2026-11-22 20:45:31.820482+00:00",
+            "tier": "TIER_3",
+            "cited": true
+          },
+          {
+            "n": 7,
+            "title": "NVDA beats earnings, lifts outlook to $130B, adds $150B buybacks",
+            "url": "https://www.barchart.com/story/news/8886782/nvda-beats-earnings-lifts-outlook-to-130b-adds-150b-buybacks-market-recap",
+            "publisher": "barchart.com",
+            "published_at": "2026-11-17 20:00:00+00:00",
+            "retrieved_at": "2026-11-22 20:45:26.473524+00:00",
+            "tier": null,
+            "cited": false
+          },
+          {
+            "n": 8,
+            "title": "NVDA daily price history",
+            "url": "https://finance.yahoo.com/quote/NVDA/history/",
+            "publisher": "yfinance",
+            "published_at": "2026-11-20",
+            "retrieved_at": "2026-11-22 21:48:08.843341+00:00",
+            "tier": "TIER_2",
+            "cited": true
+          },
+          {
+            "n": 9,
+            "title": "NVDA historical risk profile (2026 Q3)",
+            "url": "http://localhost:8000/risk-profiles/NVDA",
+            "publisher": "Team 5 Spark risk model",
+            "published_at": "2026-07-01",
+            "retrieved_at": "2026-11-22 20:49:36.150597+00:00",
+            "tier": "TIER_2",
+            "cited": true
+          }
+        ],
+        "governance": {
+          "intent": "PERSONALIZED_ADVICE",
+          "action": "RESTRICT_AND_REDIRECT",
+          "mode": "SAFE_REDIRECT",
+          "confidence": 0.9,
+          "status": "PASS",
+          "reasons": [],
+          "risk_indicators": [
+            "personalized_financial_decision"
+          ],
+          "guidance": [
+            "Do not provide a personalized buy, sell, or hold recommendation.",
+            "Redirect to general educational information.",
+            "Explain relevant risks and factors without deciding for the user."
+          ]
+        },
+        "concepts": [],
+        "glossary": [
+          {
+            "term": "Risk Tolerance",
+            "definition": "Risk tolerance is an investor's ability and willingness to lose some or all of an investment in exchange for the possibility of greater returns.",
+            "source_title": "Asset Allocation and Diversification",
+            "source_url": "https://www.investor.gov/introduction-investing/getting-started/asset-allocation"
+          },
+          {
+            "term": "Investment Time Horizon",
+            "definition": "An investment time horizon is the length of time an investor expects to keep money invested before needing it for a financial goal.",
+            "source_title": "Asset Allocation and Diversification",
+            "source_url": "https://www.investor.gov/introduction-investing/getting-started/asset-allocation"
+          },
+          {
+            "term": "Diversification",
+            "definition": "Diversification means spreading investments across different assets, companies, or sectors rather than depending on a single investment. It can help reduce concentration risk, but does not eliminate investment risk.",
+            "source_title": "Diversification",
+            "source_url": "https://www.investor.gov/introduction-investing/investing-basics/glossary/diversification"
+          },
+          {
+            "term": "Asset Allocation",
+            "definition": "Asset allocation means dividing investments among different asset classes, such as stocks, bonds, and cash.",
+            "source_title": "Asset Allocation and Diversification",
+            "source_url": "https://www.investor.gov/introduction-investing/getting-started/asset-allocation"
+          }
+        ],
+        "generated": true,
+        "generator": "openai_compatible"
+      }
+    },
+    {
+      "query": "What is an ETF and how is it different from a mutual fund?",
+      "cached_at": "2026-11-22T22:04:46+00:00",
+      "response": {
+        "answer": "An ETF pools money from investors and holds a portfolio of assets, similar to a mutual fund [1]. ETF shares trade on securities exchanges at market prices during trading hours. A mutual fund also pools money from many investors and invests it in various assets, with each share representing part ownership of the fund's portfolio [2]. The key difference is that ETFs can be bought and sold throughout the day like individual stocks, whereas mutual fund shares are typically bought and sold at the end of each trading day [2].",
+        "citations": [
+          {
+            "n": 1,
+            "title": "Exchange-Traded Fund (ETF) (Exchange-Traded Funds (ETFs))",
+            "url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/mutual-funds-and-exchange-traded-2",
+            "publisher": "U.S. Securities and Exchange Commission (SEC)",
+            "published_at": "",
+            "retrieved_at": "2026-11-22T22:01:45.673166+00:00",
+            "tier": "TIER_1",
+            "cited": true
+          },
+          {
+            "n": 2,
+            "title": "Mutual Fund (Mutual Funds)",
+            "url": "https://www.investor.gov/introduction-investing/investing-basics/glossary/mutual-funds",
+            "publisher": "U.S. Securities and Exchange Commission (SEC)",
+            "published_at": "",
+            "retrieved_at": "2026-11-22T22:01:45.673166+00:00",
+            "tier": "TIER_1",
+            "cited": true
+          }
+        ],
+        "governance": {
+          "intent": "EDUCATIONAL",
+          "action": "ALLOW",
+          "mode": "STANDARD",
+          "confidence": 0.85,
+          "status": "REVIEW",
+          "reasons": [
+            "citation:financial_claim_without_citation:sentence_2"
+          ],
+          "risk_indicators": [],
+          "guidance": [
+            "Provide a clear, educational explanation.",
+            "Avoid unsupported financial claims."
+          ]
+        },
+        "concepts": [],
+        "glossary": [
+          {
+            "term": "Exchange-Traded Fund (ETF)",
+            "definition": "An ETF pools money from investors and holds a portfolio of assets. ETF shares trade on securities exchanges at market prices during trading hours.",
+            "source_title": "Exchange-Traded Funds (ETFs)",
+            "source_url": "https://www.investor.gov/introduction-investing/investing-basics/investment-products/mutual-funds-and-exchange-traded-2"
+          },
+          {
+            "term": "Mutual Fund",
+            "definition": "A mutual fund pools money from many investors and invests it in stocks, bonds, money-market instruments, or other assets. Each share represents part ownership of the fund's portfolio.",
+            "source_title": "Mutual Funds",
+            "source_url": "https://www.investor.gov/introduction-investing/investing-basics/glossary/mutual-funds"
+          }
+        ],
+        "generated": true,
+        "generator": "openai_compatible"
+      }
+    },
+    {
+      "query": "How volatile has NVDA been historically?",
+      "cached_at": "2026-11-22T22:07:57+00:00",
+      "response": {
+        "answer": "According to the historical risk profile from the Team 5 Spark risk model [6], NVIDIA Corporation (NVDA) has been relatively stable, falling into the 'lower historical variability' group for the 2026 Q3 period. Specifically, NVDA had an annualized volatility of 38.3%, with the largest drop within the quarter being -10.6%. Historically, 37% of quarters since January 1, 1999, have shown similar low volatility compared to the higher variability group.",
+        "citations": [
+          {
+            "n": 1,
+            "title": "NVIDIA Corporation (NVDA) Stock Price, Quote, News & Analysis | Seeking Alpha",
+            "url": "https://seekingalpha.com/symbol/NVDA",
+            "publisher": "seekingalpha.com",
+            "published_at": "2026-11-16 15:00:00+00:00",
+            "retrieved_at": "2026-11-22 20:45:31.820482+00:00",
+            "tier": null,
+            "cited": false
+          },
+          {
+            "n": 2,
+            "title": "NVDA Stock Price | NVIDIA Corp. Stock Quote (U.S.: Nasdaq) | MarketWatch",
+            "url": "https://www.marketwatch.com/investing/stock/nvda",
+            "publisher": "marketwatch.com",
+            "published_at": "2026-11-20 19:00:00+00:00",
+            "retrieved_at": "2026-11-22 20:45:31.820482+00:00",
+            "tier": null,
+            "cited": false
+          },
+          {
+            "n": 3,
+            "title": "NVDA beats earnings, lifts outlook to $130B, adds $150B buybacks",
+            "url": "https://www.barchart.com/story/news/8886782/nvda-beats-earnings-lifts-outlook-to-130b-adds-150b-buybacks-market-recap",
+            "publisher": "barchart.com",
+            "published_at": "2026-11-17 20:00:00+00:00",
+            "retrieved_at": "2026-11-22 20:45:26.473524+00:00",
+            "tier": null,
+            "cited": false
+          },
+          {
+            "n": 4,
+            "title": "NVIDIA Corporation (NVDA) Stock Price, News, Quote & History - Yahoo Finance",
+            "url": "https://finance.yahoo.com/quote/NVDA",
+            "publisher": "finance.yahoo.com",
+            "published_at": "2026-11-22 16:00:00+00:00",
+            "retrieved_at": "2026-11-22 20:45:31.820482+00:00",
+            "tier": null,
+            "cited": false
+          },
+          {
+            "n": 5,
+            "title": "NVDA daily price history",
+            "url": "https://finance.yahoo.com/quote/NVDA/history/",
+            "publisher": "yfinance",
+            "published_at": "2026-11-20",
+            "retrieved_at": "2026-11-22 22:04:11.544495+00:00",
+            "tier": null,
+            "cited": false
+          },
+          {
+            "n": 6,
+            "title": "NVDA historical risk profile (2026 Q3)",
+            "url": "http://localhost:8000/risk-profiles/NVDA",
+            "publisher": "Team 5 Spark risk model",
+            "published_at": "2026-07-01",
+            "retrieved_at": "2026-11-22 20:49:36.150597+00:00",
+            "tier": "TIER_2",
+            "cited": true
+          }
+        ],
+        "governance": {
+          "intent": "MARKET_INFORMATION",
+          "action": "ALLOW_WITH_CAUTION",
+          "mode": "CITED_INFORMATION",
+          "confidence": 0.85,
+          "status": "PASS",
+          "reasons": [],
+          "risk_indicators": [],
+          "guidance": [
+            "Use reliable and relevant sources.",
+            "Cite factual financial claims.",
+            "Identify dates and data freshness where relevant."
+          ]
+        },
+        "concepts": [],
+        "glossary": [],
+        "generated": true,
+        "generator": "openai_compatible"
+      }
+    },
+    {
+      "query": "How does inflation affect bond prices?",
+      "cached_at": "2026-11-22T22:09:11+00:00",
+      "response": {
+        "answer": "Inflation can decrease the value of bond prices. When inflation rises, the real value of the fixed interest payments and principal repayment on a bond decreases [1]. This makes existing bonds less attractive to investors, who may demand a higher yield to compensate for the reduced purchasing power. As a result, bond prices typically fall when inflation increases [1].",
+        "citations": [
+          {
+            "n": 1,
+            "title": "Bond (Investor.gov Glossary)",
+            "url": "https://www.investor.gov/introduction-investing/investing-basics/glossary",
+            "publisher": "U.S. Securities and Exchange Commission (SEC)",
+            "published_at": "",
+            "retrieved_at": "2026-11-22T22:07:57.884810+00:00",
+            "tier": "TIER_1",
+            "cited": true
+          }
+        ],
+        "governance": {
+          "intent": "EDUCATIONAL",
+          "action": "ALLOW",
+          "mode": "STANDARD",
+          "confidence": 0.85,
+          "status": "REVIEW",
+          "reasons": [
+            "citation:financial_claim_without_citation:sentence_1",
+            "citation:financial_claim_without_citation:sentence_3"
+          ],
+          "risk_indicators": [],
+          "guidance": [
+            "Provide a clear, educational explanation.",
+            "Avoid unsupported financial claims."
+          ]
+        },
+        "concepts": [
+          "Inflation"
+        ],
+        "glossary": [
+          {
+            "term": "Bond",
+            "definition": "A bond is a debt security in which an investor lends money to an issuer for a specified period. The issuer agrees to repay principal and make payments according to the bond's terms.",
+            "source_title": "Investor.gov Glossary",
+            "source_url": "https://www.investor.gov/introduction-investing/investing-basics/glossary"
+          }
+        ],
+        "generated": true,
+        "generator": "openai_compatible"
+      }
+    },
+    {
+      "query": "Should I put $5000 into NVDA for my retirement?",
+      "cached_at": "2026-11-22T22:11:54+00:00",
+      "response": {
+        "answer": "Investing $5000 in NVDA (NVIDIA Corp.) for retirement involves several factors. First, consider your risk tolerance [1], as NVDA has shown significant volatility. Next, evaluate your investment time horizon [2], as retirement investments should align with your expected timeline. Diversification [3] is important; holding NVDA alone could expose you to concentration risk. Asset allocation [4] is also key, as it involves balancing different asset classes to match your goals. Given the historical risk profile [9], NVDA has been relatively stable compared to other tech stocks. However, past performance does not guarantee future results. For personalized advice, consult a licensed financial professional.",
+        "citations": [
+          {
+            "n": 1,
+            "title": "Risk Tolerance (Asset Allocation and Diversification)",
+            "url": "https://www.investor.gov/introduction-investing/getting-started/asset-allocation",
+            "publisher": "U.S. Securities and Exchange Commission (SEC)",
+            "published_at": "",
+            "retrieved_at": "2026-11-22T22:09:12.007487+00:00",
+            "tier": "TIER_1",
+            "cited": true
+          },
+          {
+            "n": 2,
+            "title": "Investment Time Horizon (Asset Allocation and Diversification)",
+            "url": "https://www.investor.gov/introduction-investing/getting-started/asset-allocation",
+            "publisher": "U.S. Securities and Exchange Commission (SEC)",
+            "published_at": "",
+            "retrieved_at": "2026-11-22T22:09:12.007487+00:00",
+            "tier": "TIER_1",
+            "cited": true
+          },
+          {
+            "n": 3,
+            "title": "Diversification (Diversification)",
+            "url": "https://www.investor.gov/introduction-investing/investing-basics/glossary/diversification",
+            "publisher": "U.S. Securities and Exchange Commission (SEC)",
+            "published_at": "",
+            "retrieved_at": "2026-11-22T22:09:12.007487+00:00",
+            "tier": "TIER_1",
+            "cited": true
+          },
+          {
+            "n": 4,
+            "title": "Asset Allocation (Asset Allocation and Diversification)",
+            "url": "https://www.investor.gov/introduction-investing/getting-started/asset-allocation",
+            "publisher": "U.S. Securities and Exchange Commission (SEC)",
+            "published_at": "",
+            "retrieved_at": "2026-11-22T22:09:12.007487+00:00",
+            "tier": "TIER_1",
+            "cited": true
+          },
+          {
+            "n": 5,
+            "title": "NVDA Stock Price | NVIDIA Corp. Stock Quote (U.S.: Nasdaq) | MarketWatch",
+            "url": "https://www.marketwatch.com/investing/stock/nvda",
+            "publisher": "marketwatch.com",
+            "published_at": "2026-11-20 19:00:00+00:00",
+            "retrieved_at": "2026-11-22 20:45:31.820482+00:00",
+            "tier": null,
+            "cited": false
+          },
+          {
+            "n": 6,
+            "title": "NVDA beats earnings, lifts outlook to $130B, adds $150B buybacks",
+            "url": "https://www.barchart.com/story/news/8886782/nvda-beats-earnings-lifts-outlook-to-130b-adds-150b-buybacks-market-recap",
+            "publisher": "barchart.com",
+            "published_at": "2026-11-17 20:00:00+00:00",
+            "retrieved_at": "2026-11-22 20:45:26.473524+00:00",
+            "tier": null,
+            "cited": false
+          },
+          {
+            "n": 7,
+            "title": "NVIDIA Corporation (NVDA) Stock Price, Quote, News & Analysis | Seeking Alpha",
+            "url": "https://seekingalpha.com/symbol/NVDA",
+            "publisher": "seekingalpha.com",
+            "published_at": "2026-11-16 15:00:00+00:00",
+            "retrieved_at": "2026-11-22 20:45:31.820482+00:00",
+            "tier": null,
+            "cited": false
+          },
+          {
+            "n": 8,
+            "title": "NVDA daily price history",
+            "url": "https://finance.yahoo.com/quote/NVDA/history/",
+            "publisher": "yfinance",
+            "published_at": "2026-11-20",
+            "retrieved_at": "2026-11-22 22:09:12.549427+00:00",
+            "tier": null,
+            "cited": false
+          },
+          {
+            "n": 9,
+            "title": "NVDA historical risk profile (2026 Q3)",
+            "url": "http://localhost:8000/risk-profiles/NVDA",
+            "publisher": "Team 5 Spark risk model",
+            "published_at": "2026-07-01",
+            "retrieved_at": "2026-11-22 20:49:36.150597+00:00",
+            "tier": "TIER_2",
+            "cited": true
+          }
+        ],
+        "governance": {
+          "intent": "PERSONALIZED_ADVICE",
+          "action": "RESTRICT_AND_REDIRECT",
+          "mode": "SAFE_REDIRECT",
+          "confidence": 0.9,
+          "status": "PASS",
+          "reasons": [],
+          "risk_indicators": [
+            "personal_context",
+            "personalized_financial_decision",
+            "specific_monetary_amount"
+          ],
+          "guidance": [
+            "Do not provide a personalized buy, sell, or hold recommendation.",
+            "Redirect to general educational information.",
+            "Explain relevant risks and factors without deciding for the user."
+          ]
+        },
+        "concepts": [],
+        "glossary": [
+          {
+            "term": "Risk Tolerance",
+            "definition": "Risk tolerance is an investor's ability and willingness to lose some or all of an investment in exchange for the possibility of greater returns.",
+            "source_title": "Asset Allocation and Diversification",
+            "source_url": "https://www.investor.gov/introduction-investing/getting-started/asset-allocation"
+          },
+          {
+            "term": "Investment Time Horizon",
+            "definition": "An investment time horizon is the length of time an investor expects to keep money invested before needing it for a financial goal.",
+            "source_title": "Asset Allocation and Diversification",
+            "source_url": "https://www.investor.gov/introduction-investing/getting-started/asset-allocation"
+          },
+          {
+            "term": "Diversification",
+            "definition": "Diversification means spreading investments across different assets, companies, or sectors rather than depending on a single investment. It can help reduce concentration risk, but does not eliminate investment risk.",
+            "source_title": "Diversification",
+            "source_url": "https://www.investor.gov/introduction-investing/investing-basics/glossary/diversification"
+          },
+          {
+            "term": "Asset Allocation",
+            "definition": "Asset allocation means dividing investments among different asset classes, such as stocks, bonds, and cash.",
+            "source_title": "Asset Allocation and Diversification",
+            "source_url": "https://www.investor.gov/introduction-investing/getting-started/asset-allocation"
+          }
+        ],
+        "generated": true,
+        "generator": "openai_compatible"
+      }
+    }
+  ]
+}
