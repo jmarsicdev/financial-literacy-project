@@ -180,7 +180,7 @@ export default function AskPanel() {
 
   return (
     <section className="ask-panel">
-      <span className="eyebrow">ASK THE ASSISTANT · TEMPORARY PANEL</span>
+      <span className="eyebrow">ASK THE ASSISTANT</span>
       <h2>Ask a financial literacy question</h2>
       <p className="note">
         Educational answers with citations. The assistant explains and summarizes sources; it does not give

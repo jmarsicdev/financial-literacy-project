@@ -1,0 +1,124 @@
+{
+  "answer": "On November 20, 2026, NVIDIA Corporation (NVDA) closed at $125.53, down -14.01% from the previous close [6]. According to Yahoo Finance, the stock's 52-week range is from $124.50 to $243.37 [3]. The stock has been experiencing volatility, with a -19.60% change from November 16 to November 20 [6].",
+  "citations": [
+    {
+      "n": 1,
+      "title": "Stock (Investor.gov Glossary)",
+      "url": "https://www.investor.gov/introduction-investing/investing-basics/glossary",
+      "publisher": "U.S. Securities and Exchange Commission (SEC)",
+      "published_at": "",
+      "retrieved_at": "2026-11-22T21:38:51.248837+00:00",
+      "tier": null,
+      "cited": false
+    },
+    {
+      "n": 2,
+      "title": "NVIDIA Corporation (NVDA) Stock Price, Quote, News & Analysis | Seeking Alpha",
+      "url": "https://seekingalpha.com/symbol/NVDA",
+      "publisher": "seekingalpha.com",
+      "published_at": "2026-11-16 15:00:00+00:00",
+      "retrieved_at": "2026-11-22 20:45:31.820482+00:00",
+      "tier": null,
+      "cited": false
+    },
+    {
+      "n": 3,
+      "title": "NVIDIA Corporation (NVDA) Stock Price, News, Quote & History - Yahoo Finance",
+      "url": "https://finance.yahoo.com/quote/NVDA",
+      "publisher": "finance.yahoo.com",
+      "published_at": "2026-11-22 16:00:00+00:00",
+      "retrieved_at": "2026-11-22 20:45:31.820482+00:00",
+      "tier": "TIER_3",
+      "cited": true
+    },
+    {
+      "n": 4,
+      "title": "NVDA Stock Price | NVIDIA Corp. Stock Quote (U.S.: Nasdaq) | MarketWatch",
+      "url": "https://www.marketwatch.com/investing/stock/nvda",
+      "publisher": "marketwatch.com",
+      "published_at": "2026-11-20 19:00:00+00:00",
+      "retrieved_at": "2026-11-22 20:45:31.820482+00:00",
+      "tier": null,
+      "cited": false
+    },
+    {
+      "n": 5,
+      "title": "NVIDIA Stock Price History - Investing.com",
+      "url": "https://www.investing.com/equities/nvidia-corp-historical-data",
+      "publisher": "investing.com",
+      "published_at": "2026-11-17 20:59:59+00:00",
+      "retrieved_at": "2026-11-22 20:45:31.820482+00:00",
+      "tier": null,
+      "cited": false
+    },
+    {
+      "n": 6,
+      "title": "NVDA daily price history",
+      "url": "https://finance.yahoo.com/quote/NVDA/history/",
+      "publisher": "yfinance",
+      "published_at": "2026-11-20",
+      "retrieved_at": "2026-11-22 21:38:56.858604+00:00",
+      "tier": "TIER_2",
+      "cited": true
+    },
+    {
+      "n": 7,
+      "title": "NVDA historical risk profile (2026 Q3)",
+      "url": "http://localhost:8000/risk-profiles/NVDA",
+      "publisher": "Team 5 Spark risk model",
+      "published_at": "2026-07-01",
+      "retrieved_at": "2026-11-22 20:49:36.150597+00:00",
+      "tier": null,
+      "cited": false
+    }
+  ],
+  "governance": {
+    "intent": "MARKET_INFORMATION",
+    "action": "ALLOW_WITH_CAUTION",
+    "mode": "CITED_INFORMATION",
+    "confidence": 0.85,
+    "status": "PASS",
+    "reasons": [],
+    "risk_indicators": [],
+    "guidance": [
+      "Use reliable and relevant sources.",
+      "Cite factual financial claims.",
+      "Identify dates and data freshness where relevant."
+    ]
+  },
+  "concepts": [],
+  "glossary": [
+    {
+      "term": "Stock",
+      "definition": "A share of stock represents an ownership interest in a corporation. Its value can rise or fall.",
+      "source_title": "Investor.gov Glossary",
+      "source_url": "https://www.investor.gov/introduction-investing/investing-basics/glossary"
+    }
+  ],
+  "generated": true,
+  "generator": "openai_compatible",
+  "trace": [
+    {
+      "step": "govern_request",
+      "ms": 3.7,
+      "note": "MARKET_INFORMATION -> CITED_INFORMATION"
+    },
+    {
+      "step": "retrieve",
+      "ms": 5905.9,
+      "note": "7 evidence rows; price_context:NVDA; risk_profile:NVDA"
+    },
+    {
+      "step": "generate",
+      "ms": 148498.7,
+      "note": "openai_compatible"
+    },
+    {
+      "step": "govern_response",
+      "ms": 33.4,
+      "note": "PASS"
+    }
+  ],
+  "cached": false,
+  "cached_at": ""
+}

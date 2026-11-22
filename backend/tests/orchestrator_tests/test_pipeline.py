@@ -336,3 +336,26 @@ def test_citation_repair_can_be_switched_off():
 
     assert len(generator.calls) == 1
     assert response.governance.status == "REVIEW"
+
+
+def test_suitability_phrasing_gets_one_strict_rewrite():
+    generator = FakeGenerator(
+        "NVDA is best suited for long-term investors [1].",
+        "Long-term investors commonly consider time horizon and risk tolerance [1].",
+    )
+    response = build(FakeRetriever([SEC_ROW]), generator).ask("Should I invest in NVDA for my retirement?", debug=True)
+
+    assert len(generator.calls) == 2
+    assert "A previous draft was rejected" in generator.calls[1][0]["content"]
+    assert response.governance.status == "PASS", response.governance.reasons
+    assert "suited" not in response.answer
+    assert any("strict retry PASS" in step.note for step in response.trace)
+
+
+def test_suitability_phrasing_stays_review_when_the_rewrite_repeats_it():
+    generator = FakeGenerator("NVDA is best suited for long-term investors [1].")
+    response = build(FakeRetriever([SEC_ROW]), generator).ask("Should I invest in NVDA for my retirement?")
+
+    assert len(generator.calls) == 2
+    assert response.governance.status == "REVIEW"
+    assert "guardrail:personalized_suitability_claim" in response.governance.reasons
