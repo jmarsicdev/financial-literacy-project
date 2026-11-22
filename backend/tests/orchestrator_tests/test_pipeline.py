@@ -141,17 +141,73 @@ def test_citation_retry_preserves_review_when_citations_are_still_missing():
     assert "[1]" not in response.answer
 
 
-def test_market_information_uses_cited_mode_and_marks_news_for_review():
+def test_market_information_uses_cited_mode_and_marks_news_only_answers_for_review():
     retriever = FakeRetriever([NEWS_ROW])
     response = build(retriever).ask("What is the latest stock price news for NVDA?")
 
     assert response.governance.intent == "MARKET_INFORMATION"
     assert response.governance.mode == "CITED_INFORMATION"
     assert response.governance.status == "REVIEW"
-    assert any(reason.endswith("source_requires_review") for reason in response.governance.reasons)
+    assert any(reason.endswith("corroboration_recommended") for reason in response.governance.reasons)
     call = retriever.calls[0]
-    assert call["top_k"] == 5 and call["fetch_on_miss"] is True and call["with_prices"] is True
+    assert call["top_k"] == 4 and call["fetch_on_miss"] is True and call["with_prices"] is True
+    assert response.citations[-1].tier == "TIER_3"
+
+
+def test_unregistered_news_domain_still_requires_review():
+    row = {**NEWS_ROW, "source_url": "https://www.some-unknown-blog.net/nvda", "publisher": "some-unknown-blog.net",
+           "source_domain": "some-unknown-blog.net"}
+    response = build(FakeRetriever([row])).ask("What is the latest stock price news for NVDA?")
+
+    assert response.governance.status == "REVIEW"
+    assert any(reason.endswith("source_requires_review") for reason in response.governance.reasons)
     assert response.citations[-1].tier == "UNCLASSIFIED"
+
+
+def test_news_anchored_by_price_and_risk_rows_passes():
+    """The demo path: stored prices + Spark risk profile + an indexed article -> PASS with every row cited."""
+    price_row = {
+        "id": "price-NVDA",
+        "title": "NVDA daily price history",
+        "source_url": "https://finance.yahoo.com/quote/NVDA/history/",
+        "chunk_text": "NVDA daily closing prices from stored market data, newest first. 2026-11-20: adjusted close 180.12.",
+        "publisher": "yfinance",
+        "source_domain": "finance.yahoo.com",
+        "published_at": "2026-11-20",
+        "fetched_at": "2026-11-21T01:00:00+00:00",
+        "similarity": None,
+        "metadata": {"source": "price_bars", "symbol": "NVDA", "bars": 5},
+    }
+    risk_row = {
+        "id": "risk-profile-NVDA",
+        "title": "NVDA historical risk profile (2026 Q3)",
+        "source_url": "http://localhost:8000/risk-profiles/NVDA",
+        "chunk_text": "Historical risk profile for NVDA. In 2026 Q3 NVDA was in the 'high volatility' group.",
+        "publisher": "Team 5 Spark risk model",
+        "source_domain": "team5-financial-literacy",
+        "published_at": "2026-07-01",
+        "fetched_at": "2026-11-21T01:00:00+00:00",
+        "similarity": None,
+        "metadata": {"source": "risk_profiles", "symbol": "NVDA"},
+    }
+    response = build(FakeRetriever([NEWS_ROW, price_row, risk_row])).ask("What is the current stock price trend for NVDA?")
+
+    assert response.governance.status == "PASS", response.governance.reasons
+    assert response.governance.reasons == []
+    tiers = {c.title: c.tier for c in response.citations}
+    assert tiers[NEWS_ROW["title"]] == "TIER_3"
+    assert tiers[price_row["title"]] == "TIER_2" and tiers[risk_row["title"]] == "TIER_2"
+    assert all(c.cited for c in response.citations)
+
+
+def test_glossary_plus_news_alone_is_still_review():
+    """A term definition is not corroboration for a market claim; only data or regulator sources anchor news."""
+    response = build(FakeRetriever([NEWS_ROW])).ask("What is the latest stock price news for NVDA?")
+
+    titles = {c.title: c.tier for c in response.citations}
+    assert any(tier == "TIER_1" for tier in titles.values()), "glossary row should be present as Tier 1"
+    assert response.governance.status == "REVIEW"
+    assert response.governance.reasons == ["citation_2:corroboration_recommended"]
 
 
 def test_personalized_advice_is_redirected_not_refused():

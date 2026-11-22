@@ -12,6 +12,7 @@ from ..db import get_connection
 from ..ingestion.dedup import normalize_title
 from ..ingestion.tickers import DEFAULT_TICKERS
 from ..rag_governance.evidence import RetrievalContext, build_hybrid_context
+from ..rag_governance.source_reliability import SourceTier, classify_url
 from .config import OrchestratorConfig
 
 log = logging.getLogger("orchestrator.retrieval")
@@ -52,6 +53,30 @@ def dedup_results(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             seen_urls.add(url)
         kept.append(row)
     return kept
+
+
+# policy 6.1: evidence comes from approved or reviewed sources first. Rank registered
+# domains ahead of unknown ones and social platforms last; within a group keep the
+# similarity order. Unregistered rows are still offered when nothing better exists and
+# are still flagged by governance if the answer cites them.
+TIER_RANK = {
+    SourceTier.TIER_1: 0,
+    SourceTier.TIER_2: 0,
+    SourceTier.TIER_3: 0,
+    SourceTier.UNCLASSIFIED: 1,
+    SourceTier.TIER_4: 2,
+    SourceTier.INVALID: 2,
+}
+CANDIDATE_MULTIPLIER = 3   # search this many times top_k, then keep the best-ranked top_k
+
+
+def prefer_registered(rows: list[dict[str, Any]], top_k: int) -> list[dict[str, Any]]:
+    """Keep top_k rows, registered sources first, similarity order preserved within each group."""
+    ranked = sorted(
+        enumerate(rows),
+        key=lambda item: (TIER_RANK.get(classify_url(item[1].get("source_url") or item[1].get("url") or ""), 1), item[0]),
+    )
+    return [row for _, row in ranked][:top_k]
 
 
 def above_floor(rows: list[dict[str, Any]], floor: float) -> list[dict[str, Any]]:
@@ -299,14 +324,20 @@ class Retriever:
             self._ingest_prices = lambda s: ingestor.ingest_prices(s)
         return self._ingest_prices(symbol)
 
+    def _select(self, hybrid: dict[str, Any], top_k: int) -> tuple[list[dict[str, Any]], int]:
+        """Dedup, drop rows under the relevance floor, then keep the best-ranked top_k. Returns (rows, dropped)."""
+        rows = dedup_results(list(hybrid.get("results") or []))
+        kept = above_floor(rows, self.config.relevance_floor)
+        return prefer_registered(kept, top_k), len(rows) - len(kept)
+
     def retrieve(self, query: str, *, top_k: int | None = None, fetch_on_miss: bool | None = None,
                  with_prices: bool = True, leading_rows: list[dict[str, Any]] | None = None) -> RetrievalOutcome:
         top_k = top_k or self.config.top_k
         fetch = self.config.fetch_on_miss if fetch_on_miss is None else fetch_on_miss
         notes: list[str] = []
 
-        hybrid = self.search(query, top_k)
-        results = dedup_results(list(hybrid.get("results") or []))
+        hybrid = self.search(query, top_k * CANDIDATE_MULTIPLIER)
+        results, floor_dropped = self._select(hybrid, top_k)
         fetched = False
 
         thin = len(results) < 3 or best_similarity(results) < self.config.min_similarity
@@ -318,8 +349,8 @@ class Retriever:
                 if status in ("ok", "fallback"):
                     indexed = self.index_news()
                     notes.append(f"indexed:{indexed}")
-                    hybrid = self.search(query, top_k)
-                    results = dedup_results(list(hybrid.get("results") or []))
+                    hybrid = self.search(query, top_k * CANDIDATE_MULTIPLIER)
+                    results, floor_dropped = self._select(hybrid, top_k)
                     fetched = True
             except Exception as exc:  # noqa: BLE001
                 log.warning("fetch-on-miss failed: %s", exc)
@@ -350,11 +381,8 @@ class Retriever:
                     results.append(profile_row)
                     notes.append(f"risk_profile:{symbol}")
 
-        dropped = len(results)
-        results = above_floor(results, self.config.relevance_floor)
-        dropped -= len(results)
-        if dropped:
-            notes.append(f"below_floor:{dropped}")
+        if floor_dropped:
+            notes.append(f"below_floor:{floor_dropped}")
         results = list(leading_rows or []) + results
         hybrid = {**hybrid, "results": results, "count": len(results)}
         context = build_hybrid_context(query, hybrid)

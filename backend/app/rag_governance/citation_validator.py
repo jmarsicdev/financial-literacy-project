@@ -20,6 +20,7 @@ class Citation:
     supporting_text: str
     retrieved_at: str = ""
     publication_date: str = ""
+    kind: str = ""   # evidence origin ("price_bars", "risk_profiles", "search_results", ...)
 
 
 @dataclass

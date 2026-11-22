@@ -2,10 +2,12 @@ from types import SimpleNamespace
 
 from app.orchestrator.config import OrchestratorConfig
 from app.orchestrator.retrieval import (
+    CANDIDATE_MULTIPLIER,
     Retriever,
     best_similarity,
     dedup_results,
     find_tickers,
+    prefer_registered,
     price_context_row,
 )
 
@@ -164,3 +166,28 @@ def test_low_similarity_rows_are_not_offered_as_evidence():
     titles = [c.title for c in outcome.context.evidence_chunks]
     assert titles == ["Relevant", "Barely", "NVDA daily price history"]
     assert "below_floor:1" in outcome.notes
+
+
+def test_prefer_registered_ranks_known_publishers_first_and_social_last():
+    rows = [
+        _row("Forum thread", "https://www.reddit.com/r/stocks/1", similarity=0.80),
+        _row("Unknown blog", "https://random-blog.example.net/a", similarity=0.75),
+        _row("Reuters story", "https://www.reuters.com/markets/a", similarity=0.70),
+        _row("SEC filing", "https://www.sec.gov/filing", similarity=0.65),
+        _row("Another blog", "https://other.example.net/b", similarity=0.60),
+    ]
+    kept = prefer_registered(rows, 3)
+    assert [r["title"] for r in kept] == ["Reuters story", "SEC filing", "Unknown blog"]
+    # within a group the similarity order is preserved; social rows come last
+    assert [r["title"] for r in prefer_registered(rows, 5)][-1] == "Forum thread"
+
+
+def test_retriever_searches_a_wider_candidate_set_then_keeps_registered_rows():
+    rows = [_row(f"Blog {i}", f"https://blog{i}.example.net/x", similarity=0.9 - i * 0.01) for i in range(4)]
+    rows += [_row("Barron's story", "https://www.barrons.com/articles/nvda", similarity=0.5)]
+    search = FakeSearch(rows)
+    outcome = _retriever(search).retrieve("Nvidia stock", top_k=3, fetch_on_miss=False, with_prices=False)
+
+    assert search.calls[0][1] == 3 * CANDIDATE_MULTIPLIER
+    titles = [c.title for c in outcome.context.evidence_chunks]
+    assert titles[0] == "Barron's story" and len(titles) == 3

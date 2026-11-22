@@ -30,7 +30,7 @@ log = logging.getLogger("orchestrator")
 
 TOP_K_BY_MODE = {
     GenerationMode.STANDARD: 3,
-    GenerationMode.CITED_INFORMATION: 5,
+    GenerationMode.CITED_INFORMATION: 4,
     GenerationMode.SAFE_REDIRECT: 3,
 }
 FETCH_ON_MISS_MODES = {GenerationMode.CITED_INFORMATION}

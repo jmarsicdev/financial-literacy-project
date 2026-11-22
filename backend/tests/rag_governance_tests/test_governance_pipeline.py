@@ -146,6 +146,87 @@ class TestGovernancePipeline(unittest.TestCase):
             result.reasons,
         )
 
+    def test_journalism_alone_requires_review(self):
+        response = "Nvidia reports earnings next month. [1]"
+
+        result = evaluate_generated_response(
+            response,
+            [self.make_citation(url="https://www.reuters.com/markets/nvidia")],
+        )
+
+        self.assertEqual(result.status, PipelineStatus.REVIEW)
+        self.assertIn("citation_1:corroboration_recommended", result.reasons)
+
+    def test_journalism_anchored_by_official_data_passes(self):
+        response = (
+            "NVDA closed at 180.12 on 2026-11-20 [1]. "
+            "Reuters reported strong data-center demand this quarter [2]."
+        )
+        price_row = Citation(
+            citation_id="1",
+            title="NVDA daily price history",
+            publisher="yfinance",
+            url="https://finance.yahoo.com/quote/NVDA/history/",
+            supporting_text="NVDA daily closing prices from stored market data.",
+            retrieved_at="2026-11-21T00:00:00+00:00",
+            kind="price_bars",
+        )
+        news = self.make_citation(citation_id="2", url="https://www.reuters.com/markets/nvidia")
+
+        result = evaluate_generated_response(response, [price_row, news])
+
+        self.assertEqual(result.status, PipelineStatus.PASS)
+        self.assertEqual(result.reasons, [])
+        tiers = {c.citation_id: c.reliability.tier for c in result.source_checks}
+        self.assertEqual(tiers, {"1": SourceTier.TIER_2, "2": SourceTier.TIER_3})
+        # the journalism source still carries its own caveat for the UI
+        self.assertIn("corroboration_recommended", result.source_checks[1].reliability.warnings)
+
+    def test_official_anchor_does_not_excuse_unclassified_or_social_sources(self):
+        response = "An ETF is an investment fund. [1] People on forums disagree. [2] A blog says otherwise. [3]"
+        citations = [
+            self.make_citation(citation_id="1"),
+            self.make_citation(citation_id="2", url="https://www.reddit.com/r/investing/"),
+            self.make_citation(citation_id="3", url="https://random-blog.example.net/post"),
+        ]
+
+        result = evaluate_generated_response(response, citations)
+
+        self.assertEqual(result.status, PipelineStatus.REVIEW)
+        self.assertIn("citation_2:user_generated_source", result.reasons)
+        self.assertIn("citation_3:source_requires_review", result.reasons)
+
+    def test_uncited_journalism_does_not_count_as_an_anchor_or_a_reason(self):
+        # only sources actually referenced in the answer are evaluated
+        response = "An ETF is an investment fund that trades on an exchange. [1]"
+        citations = [
+            self.make_citation(citation_id="1", url="https://www.cnbc.com/etfs"),
+            self.make_citation(citation_id="2"),
+        ]
+
+        result = evaluate_generated_response(response, citations)
+
+        self.assertEqual(result.status, PipelineStatus.REVIEW)
+        self.assertEqual(result.reasons, ["citation_1:corroboration_recommended"])
+
+    def test_glossary_definition_does_not_anchor_journalism(self):
+        response = "A stock is a share of ownership in a company [1]. Nvidia shares rose after earnings [2]."
+        glossary = Citation(
+            citation_id="1",
+            title="Stock (SEC glossary)",
+            publisher="U.S. Securities and Exchange Commission",
+            url="https://www.investor.gov/introduction-investing/investing-basics/glossary/stocks",
+            supporting_text="A stock is a share of ownership in a company.",
+            retrieved_at="2026-11-21T00:00:00+00:00",
+            kind="glossary",
+        )
+        news = self.make_citation(citation_id="2", url="https://www.cnbc.com/nvidia-earnings")
+
+        result = evaluate_generated_response(response, [glossary, news])
+
+        self.assertEqual(result.status, PipelineStatus.REVIEW)
+        self.assertEqual(result.reasons, ["citation_2:corroboration_recommended"])
+
 
 if __name__ == "__main__":
     unittest.main()

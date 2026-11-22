@@ -39,6 +39,7 @@ class EvidenceChunk:
             supporting_text=self.supporting_text,
             retrieved_at=self.retrieved_at,
             publication_date=self.publication_date,
+            kind=str(self.metadata.get("source") or ""),
         )
 
 
