@@ -30,6 +30,10 @@ from .source_reliability import (
 from .terminology import GlossaryEntry, search_terms
 
 
+# evidence kind of SEC glossary rows (see orchestrator.pipeline.glossary_rows)
+GLOSSARY_KIND = "glossary"
+
+
 class GenerationMode(str, Enum):
     STANDARD = "STANDARD"
     CITED_INFORMATION = "CITED_INFORMATION"
@@ -178,17 +182,22 @@ def evaluate_generated_response(
         if isinstance(citation, Citation)
     } if isinstance(citations, list) else {}
 
-    for citation_id in sorted(referenced_ids):
+    anchored = False
+
+    for citation_id in sorted(referenced_ids, key=int):
         citation = citation_map.get(citation_id)
 
         if citation is None:
             continue
+
+        kind = getattr(citation, "kind", "") or ""
 
         source = SourceMetadata(
             source_id=citation.citation_id,
             title=citation.title or "",
             publisher=citation.publisher or "",
             url=citation.url or "",
+            kind=kind,
         )
 
         reliability = evaluate_source_reliability(source)
@@ -200,12 +209,15 @@ def evaluate_generated_response(
             )
         )
 
-        if reliability.tier == SourceTier.TIER_3:
-            reasons.append(
-                f"citation_{citation_id}:corroboration_recommended"
-            )
+        # A glossary entry defines a term; it does not corroborate a market
+        # fact, so it never anchors journalism on its own.
+        if (
+            reliability.tier in (SourceTier.TIER_1, SourceTier.TIER_2)
+            and kind != GLOSSARY_KIND
+        ):
+            anchored = True
 
-        elif reliability.tier == SourceTier.TIER_4:
+        if reliability.tier == SourceTier.TIER_4:
             reasons.append(
                 f"citation_{citation_id}:user_generated_source"
             )
@@ -219,6 +231,20 @@ def evaluate_generated_response(
             reasons.append(
                 f"citation_{citation_id}:invalid_source"
             )
+
+    # Established journalism (Tier 3) is context, not primary evidence. It is
+    # acceptable when the answer also cites at least one authoritative or
+    # official-data source (Tier 1 or 2: a regulator document, exchange or
+    # market-data provider, or this service's own computed figures), which is
+    # what "corroborate with a primary source" means in practice. An answer
+    # that rests on journalism alone, or on journalism plus a glossary
+    # definition, still goes to review.
+    if not anchored:
+        for check in source_checks:
+            if check.reliability.tier == SourceTier.TIER_3:
+                reasons.append(
+                    f"citation_{check.citation_id}:corroboration_recommended"
+                )
 
     if guardrail_result.status == GuardrailStatus.BLOCK:
         reasons.append("response_guardrail_block")

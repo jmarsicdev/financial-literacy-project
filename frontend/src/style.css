@@ -300,3 +300,63 @@ button:disabled {
   padding: 3px 9px;
   font-size: 0.78rem;
 }
+
+/* price history chart */
+.price-chart {
+  --series-1: #2a78d6;
+  --grid: #e5ecf6;
+  --axis-ink: #64748b;
+  --ink: #172b4d;
+  margin: 22px 0 10px;
+}
+.price-chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.price-chart h3 { margin: 0 0 4px; font-size: 1.05rem; }
+.price-chart-summary { margin: 0; color: #415675; font-size: 0.95rem; }
+.price-chart-summary strong { color: var(--ink); font-size: 1.15rem; }
+.range-row { display: flex; gap: 4px; flex-wrap: wrap; }
+.range-btn {
+  padding: 6px 10px;
+  background: #eef4ff;
+  color: #2455a6;
+  border: 1px solid #bfd5ff;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.range-btn.active { background: #2455a6; color: white; border-color: #2455a6; }
+.range-btn:disabled { cursor: wait; }
+.price-chart-plot { position: relative; margin-top: 10px; }
+.price-chart svg { width: 100%; height: auto; display: block; touch-action: none; }
+.price-chart .grid { stroke: var(--grid); stroke-width: 1; }
+.price-chart .axis-line { stroke: #cbd6e6; stroke-width: 1; }
+.price-chart .axis { fill: var(--axis-ink); font-size: 12px; }
+.price-chart .series { fill: none; stroke: var(--series-1); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.price-chart .ring { fill: white; }
+.price-chart .marker { fill: var(--series-1); }
+.price-chart .end-label { fill: var(--ink); font-size: 12px; font-weight: 700; }
+.price-chart .crosshair { stroke: #94a3b8; stroke-width: 1; }
+.price-tooltip {
+  position: absolute;
+  top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  background: white;
+  border: 1px solid #d8e2f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(23, 43, 77, 0.12);
+  font-size: 0.85rem;
+  color: #415675;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.price-tooltip strong { color: var(--ink); font-size: 1rem; }
+.price-table { margin-top: 12px; }
+.price-table summary { color: #2455a6; }
+.price-table table { margin-top: 10px; }

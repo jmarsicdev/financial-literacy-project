@@ -19,6 +19,7 @@ class SourceMetadata:
     title: str
     publisher: str
     url: str
+    kind: str = ""   # evidence origin, e.g. "price_bars"; empty for ordinary documents
 
 
 @dataclass
@@ -60,6 +61,14 @@ TIER_2_DOMAINS = {
     "imf.org",
 }
 
+# Evidence this service computes itself from stored market data. These rows
+# are produced by our own pipeline (daily bars, the Spark risk profile), so
+# the domain registry does not apply; they are treated as official data.
+FIRST_PARTY_KINDS = {
+    "price_bars": "stored daily price bars",
+    "risk_profiles": "Spark historical risk profile",
+}
+
 # Tier 3: Established financial journalism and education.
 TIER_3_DOMAINS = {
     "reuters.com",
@@ -73,6 +82,18 @@ TIER_3_DOMAINS = {
     "apnews.com",
     "morningstar.com",
     "forbes.com",
+    "fool.com",
+    "seekingalpha.com",
+    "benzinga.com",
+    "investors.com",
+    "zacks.com",
+    "businessinsider.com",
+    "thestreet.com",
+    "investing.com",
+    "barchart.com",
+    # Yahoo Finance pages are mostly syndicated journalism; the price history
+    # this service stores from yfinance is classified by kind, not by domain.
+    "yahoo.com",
 }
 
 # Tier 4: User-generated content and social platforms.
@@ -119,6 +140,18 @@ def _classify_domain(host: str):
     return SourceTier.UNCLASSIFIED, ""
 
 
+def classify_url(url: str) -> SourceTier:
+    """Registry tier for a URL alone (no metadata checks); UNCLASSIFIED for anything unknown or unparsable."""
+    try:
+        host = (urlparse(str(url or "")).hostname or "").lower().rstrip(".")
+    except (TypeError, ValueError):
+        return SourceTier.UNCLASSIFIED
+    if not host:
+        return SourceTier.UNCLASSIFIED
+    tier, _ = _classify_domain(host)
+    return tier
+
+
 def evaluate_source_reliability(
     source: SourceMetadata,
 ) -> SourceReliabilityResult:
@@ -159,7 +192,11 @@ def evaluate_source_reliability(
 
     host = host.lower().rstrip(".")
 
-    tier, matched_domain = _classify_domain(host)
+    kind = (source.kind or "").strip().lower()
+    if kind in FIRST_PARTY_KINDS:
+        tier, matched_domain = SourceTier.TIER_2, f"first_party:{kind}"
+    else:
+        tier, matched_domain = _classify_domain(host)
 
     warnings = []
 
@@ -174,6 +211,14 @@ def evaluate_source_reliability(
             "Authoritative regulatory or government source. "
             "Suitable for supporting important factual claims "
             "within its subject area."
+        )
+        can_support = True
+
+    elif tier == SourceTier.TIER_2 and kind in FIRST_PARTY_KINDS:
+        guidance = (
+            f"Figures computed by this service from {FIRST_PARTY_KINDS[kind]}. "
+            "They describe stored past data as of the retrieval date, "
+            "not a forecast."
         )
         can_support = True
 

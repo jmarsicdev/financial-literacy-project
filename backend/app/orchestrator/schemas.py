@@ -7,6 +7,7 @@ class AskRequest(BaseModel):
     query: str = Field(min_length=2, max_length=2000)
     top_k: int | None = Field(default=None, ge=1, le=20)
     debug: bool = False
+    cache: bool = True               # false forces a fresh model call and refreshes the stored answer
 
 
 class CitationOut(BaseModel):
@@ -53,3 +54,5 @@ class AskResponse(BaseModel):
     generated: bool = False
     generator: str = "none"
     trace: list[TraceStep] | None = None
+    cached: bool = False             # served from the Redis answer cache
+    cached_at: str = ""              # when the cached answer was generated (UTC)

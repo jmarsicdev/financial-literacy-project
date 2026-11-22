@@ -40,7 +40,12 @@ services:
       LLM_PROVIDER: ${LLM_PROVIDER:-}
       LLM_MODEL: ${LLM_MODEL:-Qwen/Qwen2.5-72B-Instruct}
       LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-}
+      LLM_TEMPERATURE: ${LLM_TEMPERATURE:-}
+      ASK_CACHE_TTL_SECONDS: ${ASK_CACHE_TTL_SECONDS:-}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
     ports: ["8000:8605"]
+    extra_hosts: ["host.docker.internal:host-gateway"]   # lets LLM_BASE_URL reach an Ollama running on the host
     depends_on:
       db: {condition: service_healthy}
       redis: {condition: service_healthy}
@@ -59,6 +64,14 @@ services:
       db:
         condition: service_healthy
     command: ["bash", "-lc", "sleep infinity"]
+  ollama:
+    # optional local model server: `docker compose --profile local-llm up -d`, then
+    # `docker compose exec ollama ollama pull qwen2.5:7b-instruct` once; set LLM_BASE_URL=http://ollama:11434/v1 in .env
+    image: ollama/ollama:latest
+    profiles: ["local-llm"]
+    volumes: [ollama_models:/root/.ollama]
+    environment:
+      OLLAMA_KEEP_ALIVE: 30m
   frontend:
     build: ./frontend
     ports: ["5173:80"]
@@ -66,3 +79,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  ollama_models:

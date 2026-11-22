@@ -30,7 +30,7 @@ log = logging.getLogger("orchestrator")
 
 TOP_K_BY_MODE = {
     GenerationMode.STANDARD: 3,
-    GenerationMode.CITED_INFORMATION: 5,
+    GenerationMode.CITED_INFORMATION: 4,
     GenerationMode.SAFE_REDIRECT: 3,
 }
 FETCH_ON_MISS_MODES = {GenerationMode.CITED_INFORMATION}
@@ -195,6 +195,27 @@ class Orchestrator:
                 result = self._govern_response(answer, context)
                 generated = False
                 note = "BLOCK -> retry failed -> glossary fallback"
+            trace.add("regenerate", retry_started, note)
+        if (
+            generated
+            and result.status == PipelineStatus.REVIEW
+            and result.guardrails.violations
+        ):
+            # advice-like phrasing the guardrails flag for review (e.g. a suitability verdict):
+            # one strict rewrite, kept only if it clears the guardrails without being blocked
+            retry_started = time.perf_counter()
+            retry_answer, retry_ok, retry_generator, retry_reason = self._generate(query, gov, context, strict=True)
+            if retry_ok:
+                retry_result = self._govern_response(retry_answer, context)
+                if retry_result.status != PipelineStatus.BLOCK and not retry_result.guardrails.violations:
+                    answer, result = retry_answer, retry_result
+                    generator_name = retry_generator
+                    note = f"REVIEW guardrail -> strict retry {retry_result.status.value}"
+                else:
+                    note = "Strict retry did not clear the guardrail"
+            else:
+                extra_reasons.append(retry_reason or "generation_unavailable")
+                note = "Strict retry failed"
             trace.add("regenerate", retry_started, note)
         if (
             self.config.citation_repair

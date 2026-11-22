@@ -31,7 +31,7 @@ Stop with `docker compose down`. `docker compose down -v` also deletes persisted
 | Service | Technology | Local port |
 |---|---|---:|
 | Frontend | React + TypeScript, Nginx | 5173 |
-| Backend | Python 3.12, FastAPI | 8000 |
+| Backend | Python 3.12, FastAPI | 8000 (container 8605) |
 | PostgreSQL + pgvector | pgvector/pgvector:pg16 | 5433 (container 5432) |
 | Redis | Redis 7 | 6379 |
 
@@ -83,7 +83,9 @@ POST /ask {"query": "What is an ETF?", "top_k": 5, "debug": false}
 -> {"answer": "... [1]", "citations": [...], "governance": {"intent", "mode", "status", "reasons"}, "concepts": [...], "glossary": [...]}
 ```
 
-`governance.status` is `PASS`, `REVIEW` (answer returned with caveats; expected for most news sources until the source registry grows), `BLOCK` (advice-like output was rejected twice and a glossary-only answer is returned), or `SKIPPED` (transactional or out-of-scope requests get a scripted reply and no model call).
+Answers the model produced are kept in Redis for `ASK_CACHE_TTL_SECONDS` (default one day) keyed by the normalized question and model; a repeat question returns the stored answer with `cached: true` and `cached_at`. Send `"cache": false` to force a fresh model call. Fallback, scripted and blocked answers are never cached.
+
+`governance.status` is `PASS`, `REVIEW` (answer returned with caveats: a claim lacks a citation, a source is unregistered or user-generated, or the answer rests on journalism alone with no official data or regulator source behind it), `BLOCK` (advice-like output was rejected twice and a glossary-only answer is returned), or `SKIPPED` (transactional or out-of-scope requests get a scripted reply and no model call).
 
 Model settings in `.env`:
 
@@ -93,8 +95,19 @@ Model settings in `.env`:
 | `LLM_MODEL` | Model id. Default `Qwen/Qwen2.5-72B-Instruct` on Hugging Face; for Ollama use e.g. `qwen2.5:7b-instruct`. |
 | `LLM_BASE_URL` | Any OpenAI-compatible `/v1` endpoint. Default is the Hugging Face router; `http://localhost:11434/v1` runs against a local Ollama. |
 | `LLM_PROVIDER` | `huggingface`, `openai_compatible`, or `stub` (deterministic, no model). Inferred from the two settings above when unset. |
+| `LLM_TIMEOUT_SECONDS` | Model call timeout, default 60. CPU-only local models need 180 or more. |
 
 With no token and no base url the stub generator answers from the evidence itself, which is what the tests use.
+
+Local model without a token: the compose file has an optional `ollama` service.
+
+```bash
+docker compose --profile local-llm up -d
+docker compose exec ollama ollama pull qwen2.5:7b-instruct     # once, ~4.7 GB, kept in the ollama_models volume
+# .env: LLM_PROVIDER=openai_compatible  LLM_BASE_URL=http://ollama:11434/v1  LLM_MODEL=qwen2.5:7b-instruct  LLM_TIMEOUT_SECONDS=300
+```
+
+Source tiers decide whether a cited answer passes: regulators (Tier 1), exchanges, market-data providers and this service's own stored prices and Spark risk profile (Tier 2) can carry a claim on their own; established journalism (Tier 3) passes only when the answer also cites a Tier 1 or Tier 2 source other than a glossary definition; user-generated or unregistered sources always send the answer to `REVIEW`.
 
 ## Spark layer and historical risk profiles
 `spark/` holds the Sprint 4 pipeline (see `spark/README.md` for commands, record counts, and results): Bronze and Silver Parquet, Gold features, Spark SQL summaries, a KMeans clustering of each stock's behavior per quarter, and two next-day classifiers kept as a negative result.
@@ -129,4 +142,4 @@ streamlit run app.py          # backend expected at http://localhost:8000, overr
 Push this starter to your team's own repository. Grant the instructor account `qcheng1-prog` the access level required by your course. Every teammate should make their own genuine commit, preferably through a branch and pull request. Do not fabricate commits. Never commit `.env` or API keys; commit `.env.example` only.
 
 ## Current limitations / next steps
-Embeddings, vector search and Redis response caching are not implemented. Ingestion covers price bars, ticker metadata and news/search results; events with window returns, daily returns, rolling volatility and fuzzy dedup are Sprint 3.
+Retrieval is implemented end to end: articles are chunked and embedded locally with MiniLM-L6 (384-d) into pgvector, hybrid search expands the query through the financial ontology, and `POST /ask` returns a cited, governance-checked answer. Still open: events with window returns are not built; Spark runs single-node; the model is hosted (Hugging Face) or local (Ollama) with no evaluation set yet; there is no authentication.

@@ -121,7 +121,7 @@ def cache_health():
         raise HTTPException(status_code=503, detail="Redis unavailable") from exc
 
 @app.get("/price-bars")
-def list_price_bars(symbol: str = Query(min_length=1, max_length=15), limit: int = Query(100, ge=1, le=500)):
+def list_price_bars(symbol: str = Query(min_length=1, max_length=15), limit: int = Query(100, ge=1, le=10000)):
     try:
         with get_connection() as conn:
             conn.row_factory = dict_row

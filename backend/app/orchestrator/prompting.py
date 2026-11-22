@@ -16,6 +16,9 @@ LANGUAGE_RULES = [
     "Never write 'you should buy/sell/hold', 'I recommend', 'the best investment for you', or promise returns.",
     "Do not call any investment suitable, right, or ideal for the user.",
     "Distinguish definitions, historical facts, current data, and opinions from sources.",
+    "Describe what happened and what sources report. Do not predict or imply where a price is heading: "
+    "no 'upside', 'rebound', 'bullish/bearish outlook', 'potential' or similar. Analyst targets, if mentioned, "
+    "are reported as a source's figure, not as an expectation.",
 ]
 
 CITATION_RULES = [
@@ -26,11 +29,13 @@ CITATION_RULES = [
     "Never invent numbers, dates, or sources.",
     "Do not add a 'Sources' or 'References' section at the end; the markers are the citations. "
     "Do not mention sources that are not relevant to the question; just leave them uncited.",
-    "Put a marker on each sentence, not just once per paragraph.",
+    "Put a marker on each sentence, not just once per paragraph. Never collect markers at the end of a paragraph. "
+    "Correct: 'NVDA closed at 125.53 on November 20 [3]. Barron's reported the drop followed a weak forecast [1].' "
+    "Wrong: 'NVDA closed at 125.53 on November 20. The drop followed a weak forecast. [1][3]'",
     "When you name a source in the text, use the publisher exactly as listed next to its number; never attribute a "
     "statement to a publisher that is not in the Sources list.",
     "If the sources do not cover part of the question, say so plainly instead of guessing.",
-    "Keep the answer under 220 words, in short paragraphs, written for a beginner.",
+    "Keep the answer under 150 words: four to seven short sentences, written for a beginner.",
 ]
 
 MODE_BLOCKS = {
@@ -39,15 +44,21 @@ MODE_BLOCKS = {
     ),
     GenerationMode.CITED_INFORMATION: (
         "Mode: cited information. Lead with what the Sources say, with a citation on every factual sentence. "
-        "State the date of any price or figure you mention."
+        "The first sentence must be a specific, cited fact (for example the latest close and its date); "
+        "no general opening sentence. State the date of any price or figure you mention, exactly as the source gives it."
     ),
     GenerationMode.SAFE_REDIRECT: (
         "Mode: safe redirect. The user asked for a personal recommendation. Do not give one and do not hint at one. "
         "Explain the factors and risks a person in that situation commonly considers, point to the SEC glossary definitions in Sources, "
         "and suggest they consult a licensed professional for personal decisions. "
+        "Never say the security is suited to, right for, or appropriate for any kind of investor, "
+        "and do not say what the user or a type of investor should do. "
         "Cite the SEC glossary definitions from Sources where relevant."
     ),
 }
+
+# characters of each source offered to the model; CPU inference time grows with prompt length
+EXCERPT_CHARS = 600
 
 STRICT_BLOCK = (
     "A previous draft was rejected for advice-like language. Rewrite without any second-person directive: "
@@ -104,7 +115,7 @@ def build_messages(
                 ) if part
             )
             user_parts.append(f"[{chunk.citation_id}] {chunk.title} ({meta})")
-            user_parts.append(f"    {chunk.supporting_text.strip()[:1200]}")
+            user_parts.append(f"    {chunk.supporting_text.strip()[:EXCERPT_CHARS]}")
         user_parts.append("")
     else:
         user_parts.append("Sources: none. Say plainly that no sources were found and keep the answer general.")

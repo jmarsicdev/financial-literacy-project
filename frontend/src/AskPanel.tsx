@@ -35,6 +35,8 @@ type AskResponse = {
   glossary: Glossary[]
   generated: boolean
   generator: string
+  cached: boolean
+  cached_at: string
   trace: TraceStep[] | null
 }
 
@@ -73,14 +75,14 @@ const EXAMPLES: { label: string; query: string; expect: string }[] = [
 
 const STATUS_TEXT: Record<Governance['status'], string> = {
   PASS: 'Passed governance checks.',
-  REVIEW: 'Returned with caveats: some sources are journalism or unverified, or some claims lack a citation. Verify important figures with a primary source.',
+  REVIEW: 'Returned with caveats: a claim lacks a citation, a source is unregistered or user-generated, or the answer rests on journalism alone. Verify important figures with a primary source.',
   BLOCK: 'The generated answer was rejected for advice-like language twice; showing glossary definitions instead.',
   SKIPPED: 'No answer was generated for this kind of request.',
 }
 
 const TIER_TEXT: Record<string, string> = {
   TIER_1: 'Regulator or government',
-  TIER_2: 'Exchange or official data',
+  TIER_2: 'Official or computed data',
   TIER_3: 'Established journalism',
   TIER_4: 'User-generated',
   UNCLASSIFIED: 'Unclassified source',
@@ -178,7 +180,7 @@ export default function AskPanel() {
 
   return (
     <section className="ask-panel">
-      <span className="eyebrow">ASK THE ASSISTANT · TEMPORARY PANEL</span>
+      <span className="eyebrow">ASK THE ASSISTANT</span>
       <h2>Ask a financial literacy question</h2>
       <p className="note">
         Educational answers with citations. The assistant explains and summarizes sources; it does not give
@@ -242,6 +244,7 @@ export default function AskPanel() {
             <span className="gov-meta">
               {gov.intent.replace(/_/g, ' ').toLowerCase()} · {gov.mode.replace(/_/g, ' ').toLowerCase()}
               {result.generated ? ` · ${result.generator}` : ' · no model call'}
+              {result.cached ? ` · cached answer from ${new Date(result.cached_at).toLocaleString()}` : ''}
             </span>
           </div>
           <p className="gov-text">{STATUS_TEXT[gov.status]}</p>

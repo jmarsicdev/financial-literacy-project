@@ -68,6 +68,29 @@ class TestFinancialAdviceGuardrails(unittest.TestCase):
         self.assertEqual(result.status, GuardrailStatus.BLOCK)
         self.assertIn("empty_or_invalid_response", result.violations)
 
+    def test_investor_type_suitability_verdict_requires_review(self):
+        for text in (
+            "NVDA is best suited for long-term investors [1].",
+            "This fund is appropriate for conservative investors.",
+            "Growth stocks are ideal for young investors.",
+        ):
+            with self.subTest(text=text):
+                result = validate_generated_response(text)
+
+                self.assertEqual(result.status, GuardrailStatus.REVIEW)
+                self.assertIn("personalized_suitability_claim", result.violations)
+
+    def test_describing_investor_considerations_is_not_a_suitability_claim(self):
+        for text in (
+            "Long-term investors commonly consider time horizon and risk tolerance [1].",
+            "One consideration is how long the money can stay invested [2].",
+            "Investors evaluate volatility before deciding; NVDA's beta was 1.89 in 2026 Q3 [3].",
+        ):
+            with self.subTest(text=text):
+                result = validate_generated_response(text)
+
+                self.assertEqual(result.status, GuardrailStatus.PASS)
+
 
 if __name__ == "__main__":
     unittest.main()
