@@ -21,7 +21,21 @@ from .rag_governance.router import router as governance_router
 from .orchestrator.router import router as ask_router
 from .risk_profiles import router as risk_profiles_router
 
-app = FastAPI(title="Team 5 Financial Literacy API", version="0.2.0")
+from contextlib import asynccontextmanager
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # demo answers shipped in the repo are loaded into the Redis answer cache once at startup
+    from .orchestrator.cache import seed_from_env
+    from .orchestrator.config import load_config
+    from .orchestrator.router import ask_cache
+
+    seed_from_env(ask_cache, load_config().model)
+    yield
+
+
+app = FastAPI(title="Team 5 Financial Literacy API", version="0.2.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:5173").split(","),

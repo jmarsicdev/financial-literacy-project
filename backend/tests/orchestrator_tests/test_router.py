@@ -4,7 +4,7 @@ import pytest
 
 from app import main as api
 from app.orchestrator import router as ask_router
-from app.orchestrator.cache import AskCache, cache_key, is_cacheable
+from app.orchestrator.cache import AskCache, cache_key, dump_answers, is_cacheable, load_answers, seed_from_env
 from app.orchestrator.schemas import AskResponse, GovernanceOut
 
 
@@ -162,3 +162,50 @@ def test_cache_disabled_by_zero_ttl(monkeypatch):
     client.post("/ask", json={"query": "What is an ETF?"})
     client.post("/ask", json={"query": "What is an ETF?"})
     assert len(fake.calls) == 2
+
+
+def test_demo_answers_round_trip_through_a_file(tmp_path):
+    source = AskCache(client=FakeRedis(), ttl_seconds=3600)
+    source.set(cache_key("What is an ETF?", "m1", None), _response(answer="An ETF is a fund [1]."))
+    source.set(cache_key("Should I buy NVDA?", "m1", None), _response(answer="Factors to consider [1]."))
+    path = tmp_path / "answers.json"
+
+    written = dump_answers(source, ["What is an ETF?", "Should I buy NVDA?", "never asked"], "m1", str(path))
+    assert written == 2
+
+    target = AskCache(client=FakeRedis(), ttl_seconds=3600)
+    assert load_answers(target, str(path), "other-model") == 2      # keyed under the configured model
+    hit = target.get(cache_key("what is an etf?", "other-model", None))
+    assert hit is not None and hit.cached is True and hit.answer == "An ETF is a fund [1]."
+    assert target._client.ttls[cache_key("What is an ETF?", "other-model", None)] is None   # fixtures do not expire
+
+    # existing entries are kept unless replace is requested
+    assert load_answers(target, str(path), "other-model") == 0
+    assert load_answers(target, str(path), "other-model", replace=True) == 2
+
+
+def test_seed_from_env_is_optional_and_never_raises(tmp_path, monkeypatch):
+    cache = AskCache(client=FakeRedis(), ttl_seconds=3600)
+    monkeypatch.delenv("ASK_CACHE_SEED", raising=False)
+    assert seed_from_env(cache, "m1") == 0
+    monkeypatch.setenv("ASK_CACHE_SEED", str(tmp_path / "missing.json"))
+    assert seed_from_env(cache, "m1") == 0
+    bad = tmp_path / "bad.json"
+    bad.write_text("{not json", encoding="utf-8")
+    monkeypatch.setenv("ASK_CACHE_SEED", str(bad))
+    assert seed_from_env(cache, "m1") == 0
+
+
+def test_shipped_demo_answers_file_is_valid():
+    import json
+    from pathlib import Path
+
+    from app.orchestrator.schemas import AskResponse
+
+    path = Path(__file__).resolve().parents[2] / "app" / "demo" / "ask_answers.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    assert data["entries"], "demo answers file should not be empty"
+    for entry in data["entries"]:
+        assert entry["query"].strip()
+        response = AskResponse.model_validate(entry["response"])
+        assert response.generated and response.governance.status in ("PASS", "REVIEW")

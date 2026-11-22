@@ -43,6 +43,7 @@ services:
       LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-}
       LLM_TEMPERATURE: ${LLM_TEMPERATURE:-}
       ASK_CACHE_TTL_SECONDS: ${ASK_CACHE_TTL_SECONDS:-}
+      ASK_CACHE_SEED: ${ASK_CACHE_SEED-/app/app/demo/ask_answers.json}   # demo answers loaded at startup; set empty to disable
       PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:8000}
     ports: ["8000:8605"]
     extra_hosts: ["host.docker.internal:host-gateway"]   # lets LLM_BASE_URL reach an Ollama running on the host
