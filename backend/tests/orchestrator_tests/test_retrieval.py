@@ -65,6 +65,8 @@ def test_price_context_row_summarizes_recent_bars():
     row = price_context_row("NVDA", bars)
     assert row["title"] == "NVDA daily price history"
     assert row["publisher"] == "yfinance"
+    assert row["chunk_text"].startswith("Latest stored close for NVDA: 110.00 on 2026-10-23.")
+    assert "+4.76% versus the previous close of 105.00 on 2026-10-22" in row["chunk_text"]
     assert "2026-10-23: adjusted close 110.00" in row["chunk_text"]
     assert "+10.00%" in row["chunk_text"]
     assert row["published_at"] == "2026-10-23" and row["fetched_at"].startswith("2026-10-25")

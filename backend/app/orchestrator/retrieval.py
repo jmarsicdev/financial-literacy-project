@@ -194,10 +194,15 @@ def price_context_row(symbol: str, bars: list[dict[str, Any]]) -> dict[str, Any]
         return None
     newest = bars[0]
     oldest = bars[-1]
+    latest_close = float(newest["adjusted_close"])
+    text = f"Latest stored close for {symbol}: {latest_close:.2f} on {newest['bar_date']}."
+    if len(bars) > 1 and float(bars[1]["adjusted_close"]) > 0:
+        day_change = (latest_close / float(bars[1]["adjusted_close"]) - 1) * 100
+        text += f" That is {day_change:+.2f}% versus the previous close of {float(bars[1]['adjusted_close']):.2f} on {bars[1]['bar_date']}."
     lines = [f"{b['bar_date']}: adjusted close {float(b['adjusted_close']):.2f}" for b in bars]
-    text = f"{symbol} daily closing prices from stored market data, newest first. " + "; ".join(lines) + "."
+    text += " Daily closes, newest first: " + "; ".join(lines) + "."
     if len(bars) > 1 and float(oldest["adjusted_close"]) > 0:
-        change = (float(newest["adjusted_close"]) / float(oldest["adjusted_close"]) - 1) * 100
+        change = (latest_close / float(oldest["adjusted_close"]) - 1) * 100
         text += f" Change from {oldest['bar_date']} to {newest['bar_date']}: {change:+.2f}%."
     provider = str(newest.get("provider") or "unknown")
     return {

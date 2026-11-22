@@ -138,7 +138,7 @@ export default function CompanyOverview({ symbol }: { symbol: string }) {
         </dl>
 
         <p>
-          <strong>Try it:</strong> Find the latest session in the table.
+          <strong>Try it:</strong> Hover the last point on the chart, or open the table below it.
           Did the stock close above or below its opening price?
         </p>
       </section>

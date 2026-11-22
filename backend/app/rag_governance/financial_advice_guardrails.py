@@ -42,6 +42,11 @@ REVIEW_RULES = {
         r"is\s+(right|perfect|ideal|suitable|appropriate)\s+for you\b",
         r"\b(suitable|appropriate|right)\s+for your\s+"
         r"(risk tolerance|financial goals|situation|needs)\b",
+        # "NVDA is best suited for long-term investors": a suitability verdict about
+        # a security, even when not addressed to the reader
+        r"\b(is|are|remains?)\s+(best\s+|well\s+|most\s+)?(suited|suitable|appropriate|ideal)\s+"
+        r"(for|to)\s+(long[- ]term|short[- ]term|conservative|aggressive|growth|income|"
+        r"beginner|new|retail|young|older|retired|risk[- ]averse|risk[- ]tolerant)\s+investors?\b",
     ],
 }
 

@@ -44,12 +44,15 @@ MODE_BLOCKS = {
     ),
     GenerationMode.CITED_INFORMATION: (
         "Mode: cited information. Lead with what the Sources say, with a citation on every factual sentence. "
-        "State the date of any price or figure you mention."
+        "The first sentence must be a specific, cited fact (for example the latest close and its date); "
+        "no general opening sentence. State the date of any price or figure you mention, exactly as the source gives it."
     ),
     GenerationMode.SAFE_REDIRECT: (
         "Mode: safe redirect. The user asked for a personal recommendation. Do not give one and do not hint at one. "
         "Explain the factors and risks a person in that situation commonly considers, point to the SEC glossary definitions in Sources, "
         "and suggest they consult a licensed professional for personal decisions. "
+        "Never say the security is suited to, right for, or appropriate for any kind of investor, "
+        "and do not say what the user or a type of investor should do. "
         "Cite the SEC glossary definitions from Sources where relevant."
     ),
 }
